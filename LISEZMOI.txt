@@ -1,0 +1,23 @@
+BIGMAX ELECPROP - installer l'application sur un téléphone
+==========================================================
+
+Contenu du dossier
+  index.html, manifest.webmanifest, sw.js, icônes (.png)
+
+Pour l'installer comme une vraie application (recommandé)
+  1. Mettez le dossier en ligne, gratuitement, avec l'un de ces services :
+     - Netlify Drop : ouvrez https://app.netlify.com/drop et glissez tout le dossier
+     - GitHub Pages ou Cloudflare Pages
+  2. Ouvrez l'adresse obtenue (en https) sur le téléphone.
+  3. Android (Chrome) : bouton « Installer l'application » dans Réglages,
+     ou menu ⋮ puis « Installer l'application ».
+     iPhone (Safari) : bouton Partager puis « Sur l'écran d'accueil ».
+  4. Après la première ouverture, l'application fonctionne sans internet.
+
+Sans mise en ligne
+  Le fichier bigmax-elecprop.html fonctionne seul : ouvrez-le avec Chrome.
+  Il ne s'installe pas comme une application, mais il marche hors connexion.
+
+Données
+  Clients, devis et réglages restent sur le téléphone. Utilisez
+  Réglages > Exporter la sauvegarde régulièrement.

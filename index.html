@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b66b0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bigmax">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Bigmax Elecprop</title>
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+<style>
+/* Layout: mobile-first, one column, bottom tab bar; tools = inputs card then figures card; documents open in a paper preview */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --ink:#13202c; --muted:#5b6b7a; --line:#d6dde4;
+  --accent:#0b66b0; --accent-ink:#ffffff; --accent-soft:#e1eef9; --warm:#b36b00; --warm-soft:#fbefd9;
+  --ok:#1a7f4b; --ok-soft:#e1f4ea; --bad:#b42318; --bad-soft:#fdecea;
+  --font:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1720; --surface:#17212c; --ink:#e6edf3; --muted:#93a4b5; --line:#263341;
+  --accent:#4aa3e8; --accent-ink:#06121d; --accent-soft:#16293b; --warm:#f0b429; --warm-soft:#2e2511;
+  --ok:#4cc38a; --ok-soft:#13291f; --bad:#ff8a80; --bad-soft:#3a1c1a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1720; --surface:#17212c; --ink:#e6edf3; --muted:#93a4b5; --line:#263341;
+  --accent:#4aa3e8; --accent-ink:#06121d; --accent-soft:#16293b; --warm:#f0b429; --warm-soft:#2e2511;
+  --ok:#4cc38a; --ok-soft:#13291f; --bad:#ff8a80; --bad-soft:#3a1c1a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 96px}
+.wrap{max-width:720px;margin:0 auto}
+header{padding-block:16px 6px;display:flex;align-items:center;gap:12px}
+.mark{width:38px;height:38px;border-radius:10px;background:var(--accent);display:grid;place-items:center;flex:none;overflow:hidden}
+.mark svg{width:22px;height:22px;fill:var(--accent-ink)}
+.mark img{width:100%;height:100%;object-fit:contain;background:#fff}
+header h1{font-size:20px;margin:0;font-weight:600;letter-spacing:-.01em;line-height:1.1}
+header h1 b{color:var(--accent);font-weight:600}
+header span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:22px 0 8px;font-weight:600}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
+.grid .full{grid-column:1/-1}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);
+  border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+input[type=number]{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums}
+input[type=file]{padding:7px;font-size:14px}
+textarea{min-height:84px;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button,.btn{font:inherit;font-size:14px;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 12px;text-decoration:none;display:inline-block;text-align:center}
+button.primary,.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:500}
+button.ghost{background:transparent;color:var(--muted)}
+button.danger{color:var(--bad);border-color:var(--bad)}
+.row{border-top:1px solid var(--line);padding-top:12px;margin-top:12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 40px;gap:8px}
+.row:first-child{border-top:0;margin-top:0;padding-top:0}
+.row .name{grid-column:1/-1}
+.row .del{align-self:end;padding:9px 0;color:var(--bad)}
+.row .linetotal{grid-column:1/4;font-family:var(--mono);font-size:13px;color:var(--muted);align-self:center}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.actions select{width:auto;flex:1 1 180px}
+.figs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fig{background:var(--accent-soft);border-radius:8px;padding:10px 12px;min-width:0}
+.fig.wide{grid-column:1/-1}
+.fig small{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}
+.fig strong{font-family:var(--mono);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.fig strong i{font-style:normal;font-size:13px;color:var(--muted);margin-left:4px;font-family:var(--font);font-weight:400}
+.fig em{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:2px}
+.fig.key{background:var(--accent)}
+.fig.key small,.fig.key strong,.fig.key strong i,.fig.key em{color:var(--accent-ink)}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+.warn{background:var(--warm-soft);color:var(--warm);border-radius:8px;padding:9px 12px;font-size:13px;margin-top:10px}
+.warn.bad{background:var(--bad-soft);color:var(--bad)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td.n{font-family:var(--mono)}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+  padding:6px max(6px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px));z-index:5}
+nav div{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:2px}
+nav a{text-align:center;text-decoration:none;color:var(--muted);font-size:11.5px;padding:7px 0;border-radius:8px;font-weight:500}
+nav a svg{display:block;margin:0 auto 3px;width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+nav a[aria-current=page]{color:var(--accent);background:var(--accent-soft)}
+.sum{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:14px}
+.sum.total{border-top:2px solid var(--ink);margin-top:6px;padding-top:10px;font-weight:600;font-size:17px}
+.sum span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px;margin:14px 0 0}
+.seg button{border:0;background:transparent;color:var(--muted);font-weight:500}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.stat small{display:block;color:var(--muted);font-size:12px}
+.stat strong{display:block;font-family:var(--mono);font-size:16px;margin-top:2px;overflow-wrap:anywhere}
+.doc{border-top:1px solid var(--line);padding:12px 0;display:grid;gap:8px}
+.doc:first-child{border-top:0;padding-top:0}
+.doc .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.doc .top b{font-family:var(--mono);font-size:14px}
+.doc .amt{font-family:var(--mono);font-weight:600;white-space:nowrap}
+.doc .sub{color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.doc .btns{display:flex;flex-wrap:wrap;gap:6px}
+.doc .btns button,.doc .btns select{padding:7px 10px;font-size:13px;width:auto}
+.logoPrev{width:84px;height:84px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}
+.logoRow{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.msg{font-size:13px;color:var(--ok);margin:8px 0 0}
+
+/* ---- aperçu du document (papier) ---- */
+#preview{position:fixed;inset:0;z-index:20;background:var(--bg);overflow:auto;
+  padding:0 max(10px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(10px,env(safe-area-inset-left,0px))}
+.pvbar{position:sticky;top:0;z-index:2;background:var(--bg);display:flex;gap:8px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top,0px)) 0 10px;max-width:794px;margin:0 auto}
+.pvbar button{flex:1 1 auto}
+.paper{background:#ffffff;color:#161616;max-width:794px;margin:0 auto 24px;padding:26px;font-family:var(--font);font-size:13px;line-height:1.5;border:1px solid #d6dde4;border-radius:4px}
+.paper *{color:inherit}
+.paper .ph{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;border-bottom:2px solid #0b66b0;padding-bottom:14px}
+.paper .pco{display:flex;gap:12px;align-items:flex-start;min-width:0}
+.paper .pco img{width:64px;height:64px;object-fit:contain}
+.paper .pco b{font-size:16px}
+.paper .pti{text-align:right}
+.paper .pti h3{margin:0 0 4px;font-size:24px;letter-spacing:.06em;color:#0b66b0}
+.paper .pcl{margin:16px 0 6px;padding:10px 12px;background:#f2f5f8;border-radius:4px}
+.paper .pcl small,.paper .lab{display:block;color:#5b6b7a;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.paper table{margin-top:12px;font-size:12.5px}
+.paper th{background:#0b66b0;color:#ffffff;white-space:normal}
+.paper th,.paper td{border-bottom:1px solid #d6dde4;white-space:normal}
+.paper td.r,.paper th.r{text-align:right;white-space:nowrap}
+.paper .pt{margin:12px 0 0 auto;width:min(320px,100%)}
+.paper .pt div{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
+.paper .pt .big{border-top:2px solid #161616;margin-top:4px;padding-top:6px;font-weight:600;font-size:15px}
+.paper .pn{margin-top:16px;white-space:pre-wrap}
+.paper .sig{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}
+.paper .sig div{border:1px solid #c5ced7;border-radius:4px;min-height:84px;padding:8px;font-size:11.5px;color:#5b6b7a}
+.paper .pf{margin-top:18px;padding-top:8px;border-top:1px solid #d6dde4;text-align:center;font-size:11px;color:#5b6b7a}
+@media print{
+  @page{margin:12mm}
+  .wrap,nav{display:none!important}
+  body{padding:0!important;background:#fff!important}
+  #preview{position:static!important;inset:auto!important;overflow:visible!important;padding:0!important;background:#fff!important}
+  .pvbar{display:none!important}
+  .paper{border:0!important;margin:0!important;max-width:none!important;padding:0!important}
+  .paper th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .paper .pcl{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media (prefers-reduced-motion:no-preference){button{transition:background .15s}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="mark" id="hMark"><svg viewBox="0 0 24 24"><path d="M13.5 2L4 14h6.5L9.5 22 20 9.5h-6.8z"/></svg></div>
+  <div><h1>Bigmax <b>Elecprop</b></h1><span>Électricité bâtiment · Énergie solaire</span></div>
+</header>
+
+<!-- ============ SOLAIRE ============ -->
+<section id="solaire">
+  <h2>Consommation à alimenter</h2>
+  <div class="card">
+    <div id="solRows"></div>
+    <div class="actions">
+      <button class="primary" id="solAdd">+ Appareil</button>
+      <select id="solPreset" aria-label="Ajouter un appareil courant"></select>
+    </div>
+    <div class="figs" style="margin-top:14px">
+      <div class="fig"><small>Énergie par jour</small><strong id="solWh">0<i>Wh</i></strong></div>
+      <div class="fig"><small>Puissance cumulée</small><strong id="solW">0<i>W</i></strong></div>
+    </div>
+  </div>
+
+  <h2>Paramètres de l'installation</h2>
+  <div class="card">
+    <div class="grid">
+      <label>Tension du système
+        <select id="sVsys"><option>12</option><option selected>24</option><option>48</option></select></label>
+      <label>Heures de soleil équivalentes / jour
+        <input id="sSun" type="number" inputmode="decimal" value="5.5" step="0.1" min="1" max="8"></label>
+      <label>Puissance d'un panneau (Wc)
+        <input id="sWc" type="number" inputmode="decimal" value="315" min="10"></label>
+      <label>Tension Voc d'un panneau (V)
+        <input id="sVoc" type="number" inputmode="decimal" value="40.5" step="0.1"></label>
+      <label>Voc max du régulateur MPPT (V)
+        <input id="sVocMax" type="number" inputmode="decimal" value="150"></label>
+      <label>Rendement global du système (%)
+        <input id="sEff" type="number" inputmode="decimal" value="75" min="40" max="95"></label>
+      <label>Type de batterie
+        <select id="sBat"><option value="50">Plomb / gel / AGM (50 % de décharge)</option><option value="80">Lithium LiFePO4 (80 %)</option></select></label>
+      <label>Autonomie voulue (jours)
+        <input id="sAut" type="number" inputmode="decimal" value="1" step="0.5" min="0.5"></label>
+      <label>Capacité d'une batterie (Ah)
+        <input id="sAh" type="number" inputmode="decimal" value="200" min="5"></label>
+      <label>Tension d'une batterie (V)
+        <select id="sVb"><option selected>12</option><option>6</option><option>2</option><option>24</option><option>48</option></select></label>
+      <label>Simultanéité des appareils (%)
+        <input id="sSim" type="number" inputmode="decimal" value="80" min="10" max="100"></label>
+    </div>
+  </div>
+
+  <h2>Résultat</h2>
+  <div class="card">
+    <div class="figs" id="solRes"></div>
+    <div id="solWarn"></div>
+    <div class="actions"><button class="primary" id="solToDevis">Ajouter ce matériel au devis</button></div>
+    <p class="note">Dimensionnement indicatif. Vérifier les fiches techniques du panneau, du régulateur et de l'onduleur avant l'achat.</p>
+  </div>
+</section>
+
+<!-- ============ CÂBLES ============ -->
+<section id="cables" hidden>
+  <h2>Section de câble et protection</h2>
+  <div class="card">
+    <div class="grid">
+      <label>Type de circuit
+        <select id="cMode"><option value="dc">Courant continu (solaire, batterie)</option><option value="mono" selected>Monophasé</option><option value="tri">Triphasé</option></select></label>
+      <label>Tension (V)
+        <input id="cU" type="number" inputmode="decimal" value="220"></label>
+      <label>Courant (A)
+        <input id="cI" type="number" inputmode="decimal" placeholder="si connu" value=""></label>
+      <label>ou Puissance (W)
+        <input id="cP" type="number" inputmode="decimal" value="3000"></label>
+      <label>Facteur de puissance (cos φ)
+        <input id="cCos" type="number" inputmode="decimal" value="0.9" step="0.05" min="0.5" max="1"></label>
+      <label>Longueur aller simple (m)
+        <input id="cL" type="number" inputmode="decimal" value="25" min="1"></label>
+      <label>Chute de tension max (%)
+        <select id="cDv"><option>1</option><option>2</option><option selected>3</option><option>5</option></select></label>
+      <label>Conducteur
+        <select id="cMat"><option value="cu" selected>Cuivre</option><option value="al">Aluminium</option></select></label>
+    </div>
+  </div>
+  <div class="card">
+    <div class="figs" id="cabRes"></div>
+    <div id="cabWarn"></div>
+    <p class="note">Si le courant est vide, il est calculé à partir de la puissance. En solaire continu, prévoir un câble solaire double isolation et un calibre de protection d'au moins 1,25 × le courant des panneaux.</p>
+  </div>
+
+  <h2>Circuits usuels (bâtiment)</h2>
+  <div class="card tbl">
+    <table>
+      <tr><th>Circuit</th><th>Section</th><th>Disjoncteur</th></tr>
+      <tr><td>Éclairage</td><td class="n">1,5 mm²</td><td class="n">10 A</td></tr>
+      <tr><td>Prises 2P+T</td><td class="n">2,5 mm²</td><td class="n">16 A</td></tr>
+      <tr><td>Prises cuisine, lave-linge</td><td class="n">2,5 mm²</td><td class="n">20 A</td></tr>
+      <tr><td>Climatiseur / chauffe-eau</td><td class="n">2,5 à 4 mm²</td><td class="n">20 A</td></tr>
+      <tr><td>Cuisinière électrique</td><td class="n">6 mm²</td><td class="n">32 A</td></tr>
+      <tr><td>Terre</td><td class="n">= section phase</td><td class="n">–</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============ BILAN ============ -->
+<section id="bilan" hidden>
+  <h2>Bilan de puissance du bâtiment</h2>
+  <div class="card">
+    <div id="bilRows"></div>
+    <div class="actions">
+      <button class="primary" id="bilAdd">+ Récepteur</button>
+      <select id="bilPreset" aria-label="Ajouter un récepteur courant"></select>
+    </div>
+  </div>
+  <div class="card">
+    <div class="grid">
+      <label>Alimentation
+        <select id="bType"><option value="mono" selected>Monophasé</option><option value="tri">Triphasé</option></select></label>
+      <label>Tension (V)
+        <input id="bU" type="number" inputmode="decimal" value="220"></label>
+      <label>cos φ moyen
+        <input id="bCos" type="number" inputmode="decimal" value="0.85" step="0.05" min="0.5" max="1"></label>
+      <label>Réserve pour extension (%)
+        <input id="bRes" type="number" inputmode="decimal" value="20" min="0" max="100"></label>
+    </div>
+  </div>
+  <h2>Résultat</h2>
+  <div class="card">
+    <div class="figs" id="bilRes"></div>
+    <p class="note">Le coefficient de simultanéité est le pourcentage d'une ligne susceptible de fonctionner en même temps que les autres.</p>
+  </div>
+</section>
+
+<!-- ============ DEVIS / FACTURES ============ -->
+<section id="devis" hidden>
+  <div class="seg" role="group" aria-label="Vue">
+    <button id="subEditBtn" aria-pressed="true">Document</button>
+    <button id="subHistBtn" aria-pressed="false">Historique</button>
+  </div>
+
+  <div id="subEdit">
+    <h2>Document</h2>
+    <div class="card">
+      <div class="grid">
+        <label>Type
+          <select id="dType" data-doc="type"><option value="DEVIS">Devis</option><option value="FACTURE">Facture</option></select></label>
+        <label>Numéro
+          <input id="dNum" data-doc="num" type="text" autocomplete="off"></label>
+        <label>Date
+          <input id="dDate" data-doc="date" type="date"></label>
+        <label><span id="dValidLbl">Validité (jours)</span>
+          <input id="dValid" data-doc="valid" type="number" inputmode="numeric" min="0"></label>
+        <label class="full">Statut
+          <select id="dStatus" data-doc="status"></select></label>
+      </div>
+    </div>
+
+    <h2>Client</h2>
+    <div class="card">
+      <div class="grid">
+        <label class="full">Nom du client
+          <input id="dcName" data-doc="client.name" type="text" autocomplete="off"></label>
+        <label>Téléphone
+          <input id="dcTel" data-doc="client.tel" type="tel" autocomplete="off"></label>
+        <label>Adresse du chantier
+          <input id="dcAddr" data-doc="client.addr" type="text" autocomplete="off"></label>
+        <label class="full">Objet des travaux
+          <input id="dObj" data-doc="obj" type="text" placeholder="Installation solaire 24 V, villa" autocomplete="off"></label>
+      </div>
+    </div>
+
+    <h2>Lignes</h2>
+    <div class="card">
+      <div id="devRows"></div>
+      <div class="actions">
+        <button class="primary" id="devAdd">+ Ligne</button>
+        <select id="devPreset" aria-label="Ajouter un article courant"></select>
+      </div>
+    </div>
+
+    <h2>Montants</h2>
+    <div class="card">
+      <div class="grid">
+        <label>Remise (%)<input id="dRem" data-doc="rem" type="number" inputmode="decimal" min="0" max="100"></label>
+        <label>TVA (%)<input id="dTva" data-doc="tva" type="number" inputmode="decimal" min="0" max="30"></label>
+        <label class="full">Acompte demandé (%)<input id="dAco" data-doc="acompte" type="number" inputmode="decimal" min="0" max="100"></label>
+      </div>
+      <div id="devTot" style="margin-top:12px"></div>
+    </div>
+
+    <h2>Conditions</h2>
+    <div class="card">
+      <label>Conditions et remarques
+        <textarea id="dNotes" data-doc="notes"></textarea></label>
+      <div class="actions">
+        <button class="primary" id="devSave">Enregistrer</button>
+        <button id="devPrev">Aperçu du document</button>
+      </div>
+      <div class="actions">
+        <button id="devCopy">Copier le texte</button>
+        <a class="btn" id="devWa" target="_blank" rel="noopener">WhatsApp</a>
+        <button class="ghost" id="devNew">Nouveau</button>
+      </div>
+      <p class="msg" id="devMsg" hidden></p>
+    </div>
+  </div>
+
+  <div id="subHist" hidden>
+    <h2>Activité</h2>
+    <div class="stats" id="stats"></div>
+    <div class="card">
+      <label>Rechercher un client ou un numéro
+        <input id="hFilter" type="search" autocomplete="off"></label>
+      <div id="hList" style="margin-top:12px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RÉGLAGES ============ -->
+<section id="reglages" hidden>
+  <h2>Mon entreprise</h2>
+  <div class="card">
+    <div class="grid">
+      <label class="full">Nom de l'entreprise<input id="coName" data-co="name" type="text" autocomplete="off"></label>
+      <label class="full">Slogan ou activité<input id="coSlogan" data-co="slogan" type="text" autocomplete="off"></label>
+      <label>Téléphone<input id="coPhone" data-co="phone" type="tel" autocomplete="off"></label>
+      <label>E-mail<input id="coEmail" data-co="email" type="email" autocomplete="off"></label>
+      <label class="full">Adresse<input id="coAddr" data-co="addr" type="text" autocomplete="off"></label>
+      <label class="full">Identifiants légaux (RCCM, NIF)<input id="coId" data-co="id" type="text" placeholder="RCCM TD-NDJ-…  NIF …" autocomplete="off"></label>
+      <label class="full">Moyens de paiement (Mobile money, banque)
+        <textarea id="coPay" data-co="pay" placeholder="Airtel Money : …&#10;Moov Money : …"></textarea></label>
+    </div>
+    <div class="logoRow" style="margin-top:12px">
+      <img class="logoPrev" id="logoPrev" alt="Logo" hidden>
+      <div style="flex:1 1 200px;min-width:0">
+        <label>Logo (image)<input id="logoFile" type="file" accept="image/*"></label>
+        <button class="ghost" id="logoDel" hidden style="margin-top:6px">Retirer le logo</button>
+      </div>
+    </div>
+  </div>
+
+  <h2>Valeurs par défaut</h2>
+  <div class="card">
+    <div class="grid">
+      <label>Devise<input id="coCur" data-co="cur" type="text" autocomplete="off"></label>
+      <label>TVA (%)<input id="coTva" data-co="tva" type="number" inputmode="decimal" min="0" max="30"></label>
+      <label>Validité / délai (jours)<input id="coValid" data-co="valid" type="number" inputmode="numeric" min="0"></label>
+      <label>Préfixe devis<input id="coPd" data-co="prefDev" type="text" maxlength="6" autocomplete="off"></label>
+      <label>Préfixe facture<input id="coPf" data-co="prefFac" type="text" maxlength="6" autocomplete="off"></label>
+      <label class="full">Conditions par défaut
+        <textarea id="coCond" data-co="cond"></textarea></label>
+    </div>
+    <p class="note">Ces valeurs s'appliquent aux nouveaux documents.</p>
+  </div>
+
+  <div id="installCard" data-pwa hidden>
+    <h2>Installation</h2>
+    <div class="card">
+      <button class="primary" id="installBtn" hidden>Installer l'application sur ce téléphone</button>
+      <p class="note" id="installHint">Sur iPhone : ouvrez le menu Partager de Safari puis « Sur l'écran d'accueil ». Sur Android : menu de Chrome puis « Installer l'application ».</p>
+    </div>
+  </div>
+
+  <h2>Sauvegarde des données</h2>
+  <div class="card">
+    <p class="note" style="margin-top:0">Vos clients, devis et réglages sont gardés sur cet appareil. Faites une sauvegarde régulière.</p>
+    <div class="actions">
+      <button class="primary" id="bkExport">Exporter la sauvegarde</button>
+    </div>
+    <label style="margin-top:12px">Restaurer depuis un fichier de sauvegarde
+      <input id="bkImport" type="file" accept=".json,application/json"></label>
+    <div class="actions"><button class="danger" id="bkWipe">Effacer toutes les données</button></div>
+    <p class="msg" id="bkMsg" hidden></p>
+  </div>
+
+  <h2>À propos</h2>
+  <div class="card">
+    <p class="note" style="margin-top:0">Bigmax Elecprop, version 1.0. Les calculs de dimensionnement sont indicatifs et ne remplacent ni les fiches techniques des fabricants, ni les normes en vigueur, ni la responsabilité de l'installateur.</p>
+  </div>
+</section>
+</div>
+
+<div id="preview" hidden>
+  <div class="pvbar">
+    <button id="pvClose">Fermer</button>
+    <button class="primary" id="pvPrint" data-pwa>Imprimer / PDF</button>
+  </div>
+  <div class="paper" id="paper"></div>
+</div>
+
+<nav aria-label="Outils"><div>
+  <a href="#solaire"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Solaire</a>
+  <a href="#cables"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>Câbles</a>
+  <a href="#bilan"><svg viewBox="0 0 24 24"><path d="M3 21V9l9-6 9 6v12z"/><path d="M9 21v-6h6v6"/></svg>Bilan</a>
+  <a href="#devis"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg>Devis</a>
+  <a href="#reglages"><svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Réglages</a>
+</div></nav>
+
+<script>window.__PWA=true;</script>
+<script>
+(function(){
+  var PWA=!!window.__PWA;
+  var $=function(s){return document.querySelector(s)};
+  var num=function(id){var v=parseFloat(String($(id).value).replace(',','.'));return isFinite(v)?v:0};
+  var fmt=function(n,d){return (+n).toLocaleString('fr-FR',{maximumFractionDigits:d==null?0:d,minimumFractionDigits:0})};
+  var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+  var pad=function(n,w){var s=String(n);while(s.length<w)s='0'+s;return s};
+  var firstGE=function(arr,v){for(var i=0;i<arr.length;i++){if(arr[i]>=v)return arr[i]}return null};
+  var parseNum=function(v){return parseFloat(String(v).replace(',','.'))||0};
+
+  var STD_S=[1.5,2.5,4,6,10,16,25,35,50,70,95,120,150,185,240];
+  var AMP={1.5:16,2.5:21,4:27,6:34,10:46,16:62,25:80,35:99,50:119,70:151,95:182,120:210,150:240,185:273,240:320};
+  var BRK=[6,10,16,20,25,32,40,50,63,80,100,125,160,200,250,400];
+  var INV=[300,500,800,1000,1500,2000,3000,4000,5000,6000,8000,10000,12000,15000];
+  var MPPT=[10,15,20,30,40,45,60,80,100];
+  var UNITS=['u','m','m²','forfait','lot','h','jour'];
+  var STATUS={DEVIS:['Brouillon','Envoyé','Accepté','Refusé'],FACTURE:['Émise','Payée']};
+
+  var PRE_SOL=[['Ampoule LED',9,1,5],['Ventilateur',60,1,8],['Télévision LED',80,1,5],['Décodeur',20,1,8],['Réfrigérateur',150,1,10],['Congélateur',200,1,10],['Chargeur téléphone',10,1,3],['Ordinateur portable',65,1,4],['Fer à repasser',1000,1,0.5],['Pompe à eau',750,1,1],['Climatiseur 1 CV',800,1,6]];
+  var PRE_BIL=[['Éclairage LED (point)',12,10,100],['Prises 2P+T (circuit)',200,6,40],['Ventilateur',60,4,80],['Réfrigérateur',150,1,100],['Climatiseur 1,5 CV',1200,2,80],['Chauffe-eau',1500,1,60],['Fer à repasser',1000,1,30],['Cuisinière électrique',3000,1,50],['Pompe 0,75 kW',750,1,60],['Machine à laver',2000,1,40]];
+  var PRE_DEV=[['Panneau solaire 315 Wc',1,'u',0],['Batterie 12 V 200 Ah',1,'u',0],['Régulateur MPPT 45 A',1,'u',0],['Onduleur 3000 VA',1,'u',0],['Câble solaire 6 mm²',20,'m',0],['Disjoncteur DC',1,'u',0],['Coffret de protection',1,'u',0],['Point lumineux posé',1,'u',0],['Prise 16 A posée',1,'u',0],['Tableau électrique',1,'u',0],['Main d\'œuvre',1,'forfait',0]];
+
+  var S={co:null,sol:[],bil:[],docs:[],cur:null,f:{}};
+  var KEYS=['sVsys','sSun','sWc','sVoc','sVocMax','sEff','sBat','sAut','sAh','sVb','sSim','cMode','cU','cI','cP','cCos','cL','cDv','cMat','bType','bU','bCos','bRes'];
+  var lastSol=null, saveWarned=false;
+
+  function defCo(){return {name:'Bigmax Elecprop',slogan:'Électricité bâtiment et énergie solaire',phone:'',email:'',addr:'N\'Djamena, Tchad',id:'',pay:'',logo:'',cur:'FCFA',tva:0,valid:30,prefDev:'DEV',prefFac:'FAC',cond:'Devis valable 30 jours. Acompte de 50 % à la commande, solde à la fin des travaux. Matériel garanti selon les conditions du fabricant.'}}
+  function todayISO(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1,2)+'-'+pad(d.getDate(),2)}
+  function addDays(iso,n){var d=new Date(iso+'T00:00:00');if(isNaN(d))return '';d.setDate(d.getDate()+(+n||0));return d.getFullYear()+'-'+pad(d.getMonth()+1,2)+'-'+pad(d.getDate(),2)}
+  function dfr(iso){if(!iso)return '';var d=new Date(iso+'T00:00:00');return isNaN(d)?'':d.toLocaleDateString('fr-FR')}
+  function money(n){return fmt(Math.round(n))+' '+(S.co.cur||'FCFA')}
+  function getPath(o,p){return p.split('.').reduce(function(x,k){return x==null?'':x[k]},o)}
+  function setPath(o,p,v){var a=p.split('.');for(var i=0;i<a.length-1;i++)o=o[a[i]];o[a[a.length-1]]=v}
+
+  function nextNum(type){
+    var pref=type==='DEVIS'?S.co.prefDev:S.co.prefFac, y=new Date().getFullYear(), head=pref+'-'+y+'-', max=0;
+    S.docs.forEach(function(d){if(d.type===type&&String(d.num).indexOf(head)===0){var n=parseInt(String(d.num).slice(head.length),10);if(n>max)max=n}});
+    return head+pad(max+1,3);
+  }
+  function newDoc(type){
+    return {id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),type:type,num:nextNum(type),date:todayISO(),valid:+S.co.valid||0,
+      status:STATUS[type][0],client:{name:'',tel:'',addr:''},obj:'',lines:[],rem:0,tva:+S.co.tva||0,acompte:0,notes:S.co.cond||''};
+  }
+  function isSaved(d){return S.docs.some(function(x){return x.id===d.id})}
+  function docTotals(d){
+    var sub=0;(d.lines||[]).forEach(function(r){sub+=(+r[1]||0)*(+r[3]||0)});
+    var disc=sub*(+d.rem||0)/100, ht=sub-disc, tv=ht*(+d.tva||0)/100, ttc=ht+tv, aco=ttc*(+d.acompte||0)/100;
+    return {sub:sub,disc:disc,ht:ht,tv:tv,ttc:ttc,aco:aco,reste:ttc-aco};
+  }
+
+  /* ---------- stockage ---------- */
+  function load(){
+    var o=null;
+    try{var r=localStorage.getItem('bigmax-elecprop:v1');if(r)o=JSON.parse(r)}catch(e){}
+    if(o&&typeof o==='object'){apply(o)}
+    S.co=Object.assign(defCo(),S.co||{});
+    if(!S.sol.length)S.sol=[['Ampoules LED',9,6,5],['Ventilateur',60,2,8],['Télévision LED',80,1,5],['Réfrigérateur',150,1,10]];
+    if(!S.bil.length)S.bil=[['Éclairage LED (point)',12,10,100],['Prises 2P+T (circuit)',200,6,40],['Climatiseur 1,5 CV',1200,1,80]];
+    if(!S.cur||!S.cur.lines)S.cur=newDoc('DEVIS');
+    KEYS.forEach(function(k){if(S.f[k]!=null)$('#'+k).value=S.f[k]});
+  }
+  function apply(o){
+    S.co=o.co&&typeof o.co==='object'?o.co:null;
+    S.sol=Array.isArray(o.sol)?o.sol:[];S.bil=Array.isArray(o.bil)?o.bil:[];
+    S.docs=Array.isArray(o.docs)?o.docs:[];S.cur=o.cur&&typeof o.cur==='object'?o.cur:null;
+    S.f=o.f&&typeof o.f==='object'?o.f:{};
+    if(S.co&&S.co.logo&&String(S.co.logo).indexOf('data:image/')!==0)S.co.logo='';
+  }
+  function save(){
+    KEYS.forEach(function(k){S.f[k]=$('#'+k).value});
+    try{localStorage.setItem('bigmax-elecprop:v1',JSON.stringify(S))}
+    catch(e){if(!saveWarned){saveWarned=true;flash('#devMsg','Stockage indisponible : exportez vos données depuis Réglages.')}}
+  }
+  function flash(sel,text){var el=$(sel);el.textContent=text;el.hidden=false;clearTimeout(el._t);el._t=setTimeout(function(){el.hidden=true},4000)}
+
+  /* ---------- listes dynamiques ---------- */
+  function fill(sel,list,label){
+    var h='<option value="">'+label+'</option>';
+    list.forEach(function(p,i){h+='<option value="'+i+'">'+esc(p[0])+'</option>'});
+    $(sel).innerHTML=h;
+  }
+  function rowsSol(){
+    $('#solRows').innerHTML=S.sol.map(function(r,i){
+      return '<div class="row" data-l="sol" data-i="'+i+'">'+
+      '<label class="name">Appareil<input id="sol-n-'+i+'" data-f="0" type="text" value="'+esc(r[0])+'" autocomplete="off"></label>'+
+      '<label>Watts<input id="sol-w-'+i+'" data-f="1" type="number" inputmode="decimal" value="'+r[1]+'"></label>'+
+      '<label>Quantité<input id="sol-q-'+i+'" data-f="2" type="number" inputmode="decimal" value="'+r[2]+'"></label>'+
+      '<label>Heures/jour<input id="sol-h-'+i+'" data-f="3" type="number" inputmode="decimal" value="'+r[3]+'" step="0.5"></label>'+
+      '<button class="del ghost" data-del aria-label="Supprimer la ligne">✕</button></div>';
+    }).join('')||'<p class="note">Aucun appareil. Ajoutez-en un.</p>';
+  }
+  function rowsBil(){
+    $('#bilRows').innerHTML=S.bil.map(function(r,i){
+      return '<div class="row" data-l="bil" data-i="'+i+'">'+
+      '<label class="name">Récepteur<input id="bil-n-'+i+'" data-f="0" type="text" value="'+esc(r[0])+'" autocomplete="off"></label>'+
+      '<label>Watts<input id="bil-w-'+i+'" data-f="1" type="number" inputmode="decimal" value="'+r[1]+'"></label>'+
+      '<label>Quantité<input id="bil-q-'+i+'" data-f="2" type="number" inputmode="decimal" value="'+r[2]+'"></label>'+
+      '<label>Simultané %<input id="bil-k-'+i+'" data-f="3" type="number" inputmode="decimal" value="'+r[3]+'"></label>'+
+      '<button class="del ghost" data-del aria-label="Supprimer la ligne">✕</button></div>';
+    }).join('')||'<p class="note">Aucun récepteur. Ajoutez-en un.</p>';
+  }
+  function rowsDev(){
+    var L=S.cur.lines;
+    $('#devRows').innerHTML=L.map(function(r,i){
+      var us=UNITS.indexOf(r[2])<0?UNITS.concat([r[2]]):UNITS;
+      var opts=us.map(function(u){return '<option'+(u===r[2]?' selected':'')+'>'+esc(u)+'</option>'}).join('');
+      return '<div class="row" data-l="dev" data-i="'+i+'">'+
+      '<label class="name">Désignation<input id="dev-n-'+i+'" data-f="0" type="text" value="'+esc(r[0])+'" autocomplete="off"></label>'+
+      '<label>Quantité<input id="dev-q-'+i+'" data-f="1" type="number" inputmode="decimal" value="'+r[1]+'"></label>'+
+      '<label>Unité<select id="dev-u-'+i+'" data-f="2">'+opts+'</select></label>'+
+      '<label>Prix unitaire<input id="dev-p-'+i+'" data-f="3" type="number" inputmode="decimal" value="'+(r[3]||'')+'" placeholder="0"></label>'+
+      '<button class="del ghost" data-del aria-label="Supprimer la ligne">✕</button>'+
+      '<span class="linetotal" id="dev-t-'+i+'"></span></div>';
+    }).join('')||'<p class="note">Aucune ligne. Ajoutez un article ou envoyez le matériel depuis l\'onglet Solaire.</p>';
+  }
+
+  /* ---------- calculs techniques ---------- */
+  function calcSolar(){
+    var wh=0,w=0;
+    S.sol.forEach(function(r){var p=+r[1]||0,q=+r[2]||0,h=+r[3]||0;wh+=p*q*h;w+=p*q});
+    var V=num('#sVsys'),sun=num('#sSun'),Wc=num('#sWc'),eff=num('#sEff')/100,dod=num('#sBat')/100,
+        aut=num('#sAut'),Ah=num('#sAh'),Vb=num('#sVb'),sim=num('#sSim')/100,Voc=num('#sVoc'),VocMax=num('#sVocMax');
+    $('#solWh').innerHTML=fmt(wh)+'<i>Wh</i>';
+    $('#solW').innerHTML=fmt(w)+'<i>W</i>';
+    var out=$('#solRes'),warn='';
+    lastSol=null;$('#solToDevis').hidden=true;
+    if(!(wh>0&&sun>0&&Wc>0&&eff>0&&dod>0&&Ah>0&&Vb>0&&V>0)){out.innerHTML='<div class="fig wide"><small>Renseignez au moins un appareil et les paramètres</small></div>';$('#solWarn').innerHTML='';return}
+    var pvW=wh/(sun*eff), n=Math.ceil(pvW/Wc), pvTot=n*Wc;
+    var batWh=wh*aut/dod, batAhNeeded=batWh/V;
+    var ser=Math.max(1,Math.round(V/Vb)), par=Math.max(1,Math.ceil(batAhNeeded/Ah)), nb=ser*par;
+    var peak=w*sim*1.25, inv=firstGE(INV,peak);
+    var ipv=pvTot/V*1.25, reg=firstGE(MPPT,ipv);
+    var maxS=Voc>0&&VocMax>0?Math.max(1,Math.floor(VocMax*0.9/Voc)):1, s=1;
+    for(var k=Math.min(maxS,n);k>=1;k--){if(n%k===0){s=k;break}}
+    var p=n/s;
+    lastSol={n:n,Wc:Wc,nb:nb,Vb:Vb,Ah:Ah,reg:reg,V:V,inv:inv};
+    $('#solToDevis').hidden=false;
+    out.innerHTML=
+      '<div class="fig key"><small>Panneaux</small><strong>'+n+'<i>× '+fmt(Wc)+' Wc</i></strong><em>'+fmt(pvTot)+' Wc au total</em></div>'+
+      '<div class="fig key"><small>Batteries</small><strong>'+nb+'<i>× '+fmt(Vb)+' V '+fmt(Ah)+' Ah</i></strong><em>'+ser+' en série × '+par+' en parallèle</em></div>'+
+      '<div class="fig"><small>Régulateur MPPT</small><strong>'+(reg?reg:'> '+MPPT[MPPT.length-1])+'<i>A à '+V+' V</i></strong><em>courant PV calculé : '+fmt(ipv,1)+' A</em></div>'+
+      '<div class="fig"><small>Onduleur</small><strong>'+(inv?fmt(inv):'> '+fmt(INV[INV.length-1]))+'<i>VA</i></strong><em>pointe estimée : '+fmt(peak)+' W</em></div>'+
+      '<div class="fig wide"><small>Branchement des panneaux</small><strong>'+s+'<i>en série ×</i> '+p+'<i>en parallèle</i></strong><em>Série maximale : '+maxS+' panneaux (Voc ×'+maxS+' = '+fmt(Voc*maxS,1)+' V, limite '+fmt(VocMax)+' V)</em></div>'+
+      '<div class="fig wide"><small>Capacité de stockage utile</small><strong>'+fmt(batWh/1000,1)+'<i>kWh à prévoir ('+fmt(batAhNeeded)+' Ah à '+V+' V)</i></strong></div>';
+    if(s*Voc<V*1.2&&Voc>0)warn+='<div class="warn">La tension série des panneaux ('+fmt(s*Voc,1)+' V) est basse pour un système '+V+' V. Vérifier la tension minimale de démarrage du régulateur.</div>';
+    if(!reg)warn+='<div class="warn">Courant PV supérieur aux régulateurs standards. Prévoir plusieurs régulateurs ou une tension de système plus haute.</div>';
+    if(Vb<V&&V%Vb!==0)warn+='<div class="warn bad">La tension du système n\'est pas un multiple de la tension de batterie.</div>';
+    $('#solWarn').innerHTML=warn;
+  }
+
+  function calcCable(){
+    var mode=$('#cMode').value,U=num('#cU'),Iin=num('#cI'),P=num('#cP'),cos=num('#cCos')||1,L=num('#cL'),dv=num('#cDv'),mat=$('#cMat').value;
+    var out=$('#cabRes');
+    var I=Iin>0?Iin:(mode==='dc'?P/U:mode==='mono'?P/(U*cos):P/(Math.sqrt(3)*U*cos));
+    if(!(U>0&&L>0&&I>0&&dv>0)){out.innerHTML='<div class="fig wide"><small>Renseignez la tension, la longueur et le courant ou la puissance</small></div>';$('#cabWarn').innerHTML='';return}
+    var k=mode==='tri'?Math.sqrt(3):2, rho=mat==='cu'?0.0225:0.036, f=mat==='cu'?1:0.78;
+    var Sth=k*rho*L*I/(U*dv/100), Sv=firstGE(STD_S,Sth);
+    var In=firstGE(BRK,I), Samp=null;
+    if(In){for(var i=0;i<STD_S.length;i++){if(AMP[STD_S[i]]*f>=In){Samp=STD_S[i];break}}}
+    var S1=(Sv&&Samp)?Math.max(Sv,Samp):null, warn='';
+    var real=S1?k*rho*L*I/S1:0;
+    out.innerHTML=
+      '<div class="fig wide"><small>Courant de calcul</small><strong>'+fmt(I,1)+'<i>A</i></strong></div>'+
+      '<div class="fig key"><small>Section à retenir</small><strong>'+(S1?String(S1).replace('.',','):'–')+'<i>mm²</i></strong><em>'+(mat==='cu'?'cuivre':'aluminium')+'</em></div>'+
+      '<div class="fig key"><small>Disjoncteur</small><strong>'+(In?In:'–')+'<i>A</i></strong><em>calibre normalisé</em></div>'+
+      '<div class="fig"><small>Selon la chute de tension</small><strong>'+(Sv?String(Sv).replace('.',','):'–')+'<i>mm²</i></strong><em>théorique '+fmt(Sth,1)+' mm²</em></div>'+
+      '<div class="fig"><small>Selon le courant admissible</small><strong>'+(Samp?String(Samp).replace('.',','):'–')+'<i>mm²</i></strong></div>'+
+      (S1?'<div class="fig wide"><small>Chute de tension réelle</small><strong>'+fmt(real,2)+'<i>V soit '+fmt(real/U*100,2)+' %</i></strong></div>':'');
+    if(!S1)warn='<div class="warn bad">Aucune section normalisée ne convient. Réduire la longueur, augmenter la tension ou passer en triphasé.</div>';
+    else if(S1>=70)warn='<div class="warn">Section importante. Étudier une tension plus élevée ou deux câbles en parallèle.</div>';
+    $('#cabWarn').innerHTML=warn;
+  }
+
+  function calcBilan(){
+    var pi=0,pu=0;
+    S.bil.forEach(function(r){var w=+r[1]||0,q=+r[2]||0,ks=(+r[3]||0)/100;pi+=w*q;pu+=w*q*ks});
+    var type=$('#bType').value,U=num('#bU'),cos=num('#bCos')||1,res=num('#bRes')/100;
+    var out=$('#bilRes');
+    if(!(pi>0&&U>0)){out.innerHTML='<div class="fig wide"><small>Ajoutez des récepteurs</small></div>';return}
+    var pf=pu*(1+res), pa=pf/cos, I=type==='mono'?pa/U:pa/(Math.sqrt(3)*U);
+    var In=firstGE(BRK,I), S1=null;
+    if(In){for(var i=0;i<STD_S.length;i++){if(AMP[STD_S[i]]>=In){S1=STD_S[i];break}}}
+    out.innerHTML=
+      '<div class="fig"><small>Puissance installée</small><strong>'+fmt(pi/1000,1)+'<i>kW</i></strong></div>'+
+      '<div class="fig"><small>Puissance foisonnée</small><strong>'+fmt(pu/1000,1)+'<i>kW</i></strong><em>avec '+fmt(res*100)+' % de réserve : '+fmt(pf/1000,1)+' kW</em></div>'+
+      '<div class="fig key"><small>Puissance à souscrire</small><strong>'+fmt(pa/1000,1)+'<i>kVA</i></strong></div>'+
+      '<div class="fig key"><small>Courant total</small><strong>'+fmt(I,1)+'<i>A</i></strong></div>'+
+      '<div class="fig"><small>Disjoncteur général</small><strong>'+(In?In:'–')+'<i>A '+(type==='mono'?'bipolaire':'tétrapolaire')+'</i></strong></div>'+
+      '<div class="fig"><small>Câble d\'alimentation</small><strong>'+(S1?String(S1).replace('.',','):'–')+'<i>mm² cuivre</i></strong><em>section minimale, à vérifier selon la longueur</em></div>';
+  }
+
+  /* ---------- devis / factures ---------- */
+  function docText(d){
+    var c=S.co,T=docTotals(d),isD=d.type==='DEVIS';
+    var t=(isD?'DEVIS ':'FACTURE ')+d.num+' du '+dfr(d.date)+'\n'+c.name+'\n';
+    if(c.phone)t+='Tél : '+c.phone+'\n';
+    t+='\n';
+    if(d.client.name)t+='Client : '+d.client.name+'\n';
+    if(d.client.addr)t+='Chantier : '+d.client.addr+'\n';
+    if(d.obj)t+='Objet : '+d.obj+'\n';
+    t+='\n';
+    d.lines.forEach(function(r){var q=+r[1]||0,p=+r[3]||0;t+='- '+r[0]+' : '+fmt(q,2)+' '+r[2]+' × '+fmt(p)+' = '+money(q*p)+'\n'});
+    t+='\n';
+    if(T.disc>0)t+='Remise : − '+money(T.disc)+'\n';
+    if(+d.tva>0)t+='Montant HT : '+money(T.ht)+'\nTVA '+fmt(d.tva,1)+' % : '+money(T.tv)+'\n';
+    t+=(+d.tva>0?'TOTAL TTC : ':'TOTAL : ')+money(T.ttc)+'\n';
+    if(T.aco>0)t+='Acompte à la commande ('+fmt(d.acompte,1)+' %) : '+money(T.aco)+'\nReste à payer : '+money(T.reste)+'\n';
+    if(isD&&d.valid>0)t+='\nValable jusqu\'au '+dfr(addDays(d.date,d.valid))+'\n';
+    return t;
+  }
+  function calcDevis(){
+    var d=S.cur,T=docTotals(d);
+    d.lines.forEach(function(r,i){var el=$('#dev-t-'+i);if(el)el.textContent='Total ligne : '+money((+r[1]||0)*(+r[3]||0))});
+    var h='<div class="sum"><span>Sous-total</span><span>'+money(T.sub)+'</span></div>';
+    if(T.disc>0)h+='<div class="sum"><span>Remise '+fmt(d.rem,1)+' %</span><span>− '+money(T.disc)+'</span></div>';
+    if(+d.tva>0)h+='<div class="sum"><span>Montant HT</span><span>'+money(T.ht)+'</span></div><div class="sum"><span>TVA '+fmt(d.tva,1)+' %</span><span>'+money(T.tv)+'</span></div>';
+    h+='<div class="sum total"><span>'+(+d.tva>0?'Total TTC':'Total à payer')+'</span><span>'+money(T.ttc)+'</span></div>';
+    if(T.aco>0)h+='<div class="sum"><span>Acompte '+fmt(d.acompte,1)+' %</span><span>'+money(T.aco)+'</span></div><div class="sum"><span>Reste à payer</span><span>'+money(T.reste)+'</span></div>';
+    $('#devTot').innerHTML=h;
+    $('#devWa').href='https://wa.me/?text='+encodeURIComponent(docText(d));
+  }
+  function fillEditor(){
+    var d=S.cur;
+    $('#dStatus').innerHTML=STATUS[d.type].map(function(s){return '<option>'+s+'</option>'}).join('');
+    if(STATUS[d.type].indexOf(d.status)<0)d.status=STATUS[d.type][0];
+    document.querySelectorAll('[data-doc]').forEach(function(el){
+      var v=getPath(d,el.dataset.doc);
+      el.value=(el.type==='number'&&(v===0||v==null))?(el.dataset.doc==='valid'?(v||0):''):v;
+    });
+    $('#dValidLbl').textContent=d.type==='DEVIS'?'Validité du devis (jours)':'Délai de paiement (jours)';
+    rowsDev();calcDevis();
+  }
+  function fillSettings(){
+    document.querySelectorAll('[data-co]').forEach(function(el){el.value=S.co[el.dataset.co]==null?'':S.co[el.dataset.co]});
+    brand();
+  }
+  function brand(){
+    var c=S.co,has=!!c.logo;
+    $('#logoPrev').hidden=!has;$('#logoDel').hidden=!has;if(has)$('#logoPrev').src=c.logo;
+    var m=$('#hMark');
+    if(has){m.innerHTML='<img alt="" src="'+esc(c.logo)+'">'}
+    else{m.innerHTML='<svg viewBox="0 0 24 24"><path d="M13.5 2L4 14h6.5L9.5 22 20 9.5h-6.8z"/></svg>'}
+  }
+
+  function paper(d){
+    var c=S.co,T=docTotals(d),isD=d.type==='DEVIS';
+    var h='<div class="ph"><div class="pco">'+(c.logo?'<img alt="" src="'+esc(c.logo)+'">':'')+'<div><b>'+esc(c.name)+'</b>'+
+      (c.slogan?'<br>'+esc(c.slogan):'')+(c.addr?'<br>'+esc(c.addr):'')+(c.phone?'<br>Tél : '+esc(c.phone):'')+(c.email?'<br>'+esc(c.email):'')+'</div></div>'+
+      '<div class="pti"><h3>'+(isD?'DEVIS':'FACTURE')+'</h3><div>N° '+esc(d.num)+'</div><div>Date : '+dfr(d.date)+'</div>'+
+      (d.valid>0?'<div>'+(isD?'Valable jusqu\'au ':'Échéance : ')+dfr(addDays(d.date,d.valid))+'</div>':'')+'</div></div>';
+    h+='<div class="pcl"><small>Client</small><b>'+esc(d.client.name||'—')+'</b>'+(d.client.tel?'<br>Tél : '+esc(d.client.tel):'')+(d.client.addr?'<br>'+esc(d.client.addr):'')+'</div>';
+    if(d.obj)h+='<div style="margin-top:8px"><span class="lab">Objet</span>'+esc(d.obj)+'</div>';
+    h+='<table><tr><th>Désignation</th><th class="r">Qté</th><th>Unité</th><th class="r">Prix unitaire</th><th class="r">Total</th></tr>';
+    d.lines.forEach(function(r){var q=+r[1]||0,p=+r[3]||0;
+      h+='<tr><td>'+esc(r[0])+'</td><td class="r">'+fmt(q,2)+'</td><td>'+esc(r[2])+'</td><td class="r">'+fmt(p)+'</td><td class="r">'+fmt(q*p)+'</td></tr>'});
+    if(!d.lines.length)h+='<tr><td colspan="5">Aucune ligne</td></tr>';
+    h+='</table><div class="pt"><div><span>Sous-total</span><span>'+money(T.sub)+'</span></div>';
+    if(T.disc>0)h+='<div><span>Remise '+fmt(d.rem,1)+' %</span><span>− '+money(T.disc)+'</span></div>';
+    if(+d.tva>0)h+='<div><span>Montant HT</span><span>'+money(T.ht)+'</span></div><div><span>TVA '+fmt(d.tva,1)+' %</span><span>'+money(T.tv)+'</span></div>';
+    h+='<div class="big"><span>'+(+d.tva>0?'Total TTC':'Total à payer')+'</span><span>'+money(T.ttc)+'</span></div>';
+    if(T.aco>0)h+='<div><span>Acompte '+fmt(d.acompte,1)+' %</span><span>'+money(T.aco)+'</span></div><div><span>Reste à payer</span><span>'+money(T.reste)+'</span></div>';
+    h+='</div>';
+    if(d.notes)h+='<div class="pn"><span class="lab">Conditions</span>'+esc(d.notes)+'</div>';
+    if(c.pay)h+='<div class="pn"><span class="lab">Moyens de paiement</span>'+esc(c.pay)+'</div>';
+    h+='<div class="sig"><div>'+(isD?'Bon pour accord, date et signature du client':'Signature du client')+'</div><div>Cachet et signature de l\'entreprise</div></div>';
+    h+='<div class="pf">'+esc(c.name)+(c.id?' · '+esc(c.id):'')+(c.phone?' · '+esc(c.phone):'')+'</div>';
+    return h;
+  }
+
+  function saveDoc(){
+    var d=JSON.parse(JSON.stringify(S.cur)),i=-1;
+    S.docs.forEach(function(x,k){if(x.id===d.id)i=k});
+    if(i>=0)S.docs[i]=d;else S.docs.unshift(d);
+    save();histRender();
+    flash('#devMsg',(d.type==='DEVIS'?'Devis ':'Facture ')+d.num+' enregistré'+(d.type==='DEVIS'?'':'e')+'.');
+  }
+  function histRender(){
+    var q=$('#hFilter').value.trim().toLowerCase(),sum={env:0,acc:0,due:0,paid:0,nEnv:0,nAcc:0,nDue:0,nPaid:0};
+    S.docs.forEach(function(d){var t=docTotals(d).ttc;
+      if(d.type==='DEVIS'&&d.status==='Envoyé'){sum.env+=t;sum.nEnv++}
+      if(d.type==='DEVIS'&&d.status==='Accepté'){sum.acc+=t;sum.nAcc++}
+      if(d.type==='FACTURE'&&d.status!=='Payée'){sum.due+=t;sum.nDue++}
+      if(d.type==='FACTURE'&&d.status==='Payée'){sum.paid+=t;sum.nPaid++}});
+    $('#stats').innerHTML=
+      '<div class="stat"><small>Devis en attente ('+sum.nEnv+')</small><strong>'+money(sum.env)+'</strong></div>'+
+      '<div class="stat"><small>Devis acceptés ('+sum.nAcc+')</small><strong>'+money(sum.acc)+'</strong></div>'+
+      '<div class="stat"><small>À encaisser ('+sum.nDue+')</small><strong>'+money(sum.due)+'</strong></div>'+
+      '<div class="stat"><small>Encaissé ('+sum.nPaid+')</small><strong>'+money(sum.paid)+'</strong></div>';
+    var list=S.docs.filter(function(d){return !q||(d.num+' '+d.client.name+' '+d.obj).toLowerCase().indexOf(q)>=0});
+    $('#hList').innerHTML=list.map(function(d){
+      var so=STATUS[d.type].map(function(s){return '<option'+(s===d.status?' selected':'')+'>'+s+'</option>'}).join('');
+      return '<div class="doc"><div class="top"><b>'+esc(d.num)+'</b><span class="amt">'+money(docTotals(d).ttc)+'</span></div>'+
+        '<div class="sub">'+esc(d.client.name||'Client non renseigné')+(d.obj?' · '+esc(d.obj):'')+' · '+dfr(d.date)+'</div>'+
+        '<div class="btns"><select data-st="'+d.id+'" aria-label="Statut">'+so+'</select>'+
+        '<button data-act="open" data-id="'+d.id+'">Ouvrir</button>'+
+        '<button data-act="dup" data-id="'+d.id+'">Dupliquer</button>'+
+        (d.type==='DEVIS'?'<button data-act="bill" data-id="'+d.id+'">Facturer</button>':'')+
+        '<button class="danger" data-act="del" data-id="'+d.id+'">Supprimer</button></div></div>';
+    }).join('')||'<p class="note" style="margin:0">'+(S.docs.length?'Aucun résultat.':'Aucun document enregistré. Créez un devis puis touchez Enregistrer.')+'</p>';
+  }
+  function findDoc(id){for(var i=0;i<S.docs.length;i++){if(S.docs[i].id===id)return S.docs[i]}return null}
+  function openEditor(d){S.cur=JSON.parse(JSON.stringify(d));fillEditor();setSub('edit');save()}
+  function setSub(v){
+    $('#subEdit').hidden=(v!=='edit');$('#subHist').hidden=(v!=='hist');
+    $('#subEditBtn').setAttribute('aria-pressed',v==='edit');$('#subHistBtn').setAttribute('aria-pressed',v==='hist');
+    if(v==='hist')histRender();
+    window.scrollTo(0,0);
+  }
+
+  function recalc(){calcSolar();calcCable();calcBilan();calcDevis();save()}
+
+  /* ---------- événements ---------- */
+  document.addEventListener('input',function(e){
+    var t=e.target;
+    if(t.dataset&&t.dataset.doc){setPath(S.cur,t.dataset.doc,t.type==='number'?parseNum(t.value):t.value);calcDevis();save();return}
+    if(t.dataset&&t.dataset.co){setPath(S.co,t.dataset.co,t.type==='number'?parseNum(t.value):t.value);save();return}
+    if(t.id==='hFilter'){histRender();return}
+    var row=t.closest&&t.closest('[data-l]');
+    if(row&&t.dataset.f!=null){
+      var l=row.dataset.l,i=+row.dataset.i,f=+t.dataset.f,arr=l==='dev'?S.cur.lines:S[l];
+      var txt=(l==='dev'&&(f===0||f===2))||(l!=='dev'&&f===0);
+      arr[i][f]=txt?t.value:parseNum(t.value);
+    }
+    recalc();
+  });
+  document.addEventListener('change',function(e){
+    var t=e.target;
+    if(t.id==='dType'){
+      S.cur.type=t.value;
+      if(!isSaved(S.cur))S.cur.num=nextNum(S.cur.type);
+      S.cur.status=STATUS[S.cur.type][0];
+      fillEditor();save();return;
+    }
+    if(t.dataset&&t.dataset.st){var d=findDoc(t.dataset.st);if(d){d.status=t.value;if(S.cur.id===d.id)S.cur.status=t.value;save();histRender()}return}
+    if(t.matches('select'))recalc();
+  });
+  var armed=null;
+  document.addEventListener('click',function(e){
+    var d=e.target.closest('[data-del]');
+    if(d){var row=d.closest('[data-l]'),l=row.dataset.l,arr=l==='dev'?S.cur.lines:S[l];arr.splice(+row.dataset.i,1);({sol:rowsSol,bil:rowsBil,dev:rowsDev})[l]();recalc();return}
+    var b=e.target.closest('[data-act]');
+    if(!b)return;
+    var act=b.dataset.act,doc=findDoc(b.dataset.id);
+    if(act==='open'&&doc){openEditor(doc)}
+    else if(act==='dup'&&doc){var c=JSON.parse(JSON.stringify(doc));c.id=Date.now().toString(36);c.num=nextNum(c.type);c.date=todayISO();c.status=STATUS[c.type][0];S.docs.unshift(c);save();histRender()}
+    else if(act==='bill'&&doc){var f=JSON.parse(JSON.stringify(doc));f.id=Date.now().toString(36);f.type='FACTURE';f.num=nextNum('FACTURE');f.date=todayISO();f.status='Émise';f.notes=(doc.notes?doc.notes+'\n':'')+'Facture établie suite au devis '+doc.num+'.';S.docs.unshift(f);save();openEditor(f)}
+    else if(act==='del'&&doc){
+      if(armed===b){S.docs=S.docs.filter(function(x){return x.id!==doc.id});armed=null;save();histRender()}
+      else{armed=b;b.textContent='Confirmer';setTimeout(function(){if(armed===b){armed=null;if(b.isConnected)b.textContent='Supprimer'}},3000)}
+    }
+  });
+  $('#solAdd').onclick=function(){S.sol.push(['Nouvel appareil',0,1,1]);rowsSol();recalc()};
+  $('#bilAdd').onclick=function(){S.bil.push(['Nouveau récepteur',0,1,100]);rowsBil();recalc()};
+  $('#devAdd').onclick=function(){S.cur.lines.push(['',1,'u',0]);rowsDev();recalc()};
+  $('#solPreset').onchange=function(){var v=this.value;if(v!==''){S.sol.push(PRE_SOL[+v].slice());rowsSol();recalc()}this.value=''};
+  $('#bilPreset').onchange=function(){var v=this.value;if(v!==''){S.bil.push(PRE_BIL[+v].slice());rowsBil();recalc()}this.value=''};
+  $('#devPreset').onchange=function(){var v=this.value;if(v!==''){S.cur.lines.push(PRE_DEV[+v].slice());rowsDev();recalc()}this.value=''};
+  $('#solToDevis').onclick=function(){
+    if(!lastSol)return;var x=lastSol,L=S.cur.lines;
+    L.push(['Panneau solaire '+x.Wc+' Wc',x.n,'u',0]);
+    L.push(['Batterie '+x.Vb+' V '+x.Ah+' Ah',x.nb,'u',0]);
+    if(x.reg)L.push(['Régulateur solaire MPPT '+x.reg+' A',1,'u',0]);
+    if(x.inv)L.push(['Onduleur '+x.inv+' VA',1,'u',0]);
+    L.push(['Structure de fixation, câbles et protections',1,'forfait',0]);
+    L.push(['Main d\'œuvre et mise en service',1,'forfait',0]);
+    if(!S.cur.obj)S.cur.obj='Installation solaire '+x.V+' V, '+fmt(x.n*x.Wc)+' Wc';
+    fillEditor();save();setSub('edit');location.hash='#devis';
+  };
+  $('#subEditBtn').onclick=function(){setSub('edit')};
+  $('#subHistBtn').onclick=function(){setSub('hist')};
+  $('#devSave').onclick=saveDoc;
+  $('#devNew').onclick=function(){S.cur=newDoc(S.cur.type);fillEditor();save();window.scrollTo(0,0);flash('#devMsg','Nouveau document.')};
+  $('#devPrev').onclick=function(){$('#paper').innerHTML=paper(S.cur);$('#preview').hidden=false;$('#preview').scrollTop=0;$('#pvClose').focus()};
+  $('#pvClose').onclick=function(){$('#preview').hidden=true};
+  $('#pvPrint').onclick=function(){window.print()};
+  $('#devCopy').onclick=function(){
+    var txt=docText(S.cur);
+    function fb(){var ta=document.createElement('textarea');ta.value=txt;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();flash('#devMsg',ok?'Texte copié.':'Copie impossible. Utilisez WhatsApp ou l\'aperçu.')}
+    try{navigator.clipboard.writeText(txt).then(function(){flash('#devMsg','Texte copié. Collez-le dans votre message.')},fb)}catch(err){fb()}
+  };
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('#preview').hidden)$('#preview').hidden=true});
+
+  /* ---------- logo ---------- */
+  $('#logoFile').onchange=function(){
+    var f=this.files&&this.files[0];if(!f)return;
+    var fr=new FileReader();
+    fr.onload=function(){
+      var img=new Image();
+      img.onload=function(){
+        var m=320,r=Math.min(1,m/Math.max(img.width,img.height)),cv=document.createElement('canvas');
+        cv.width=Math.max(1,Math.round(img.width*r));cv.height=Math.max(1,Math.round(img.height*r));
+        cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+        S.co.logo=cv.toDataURL('image/png');brand();save();
+      };
+      img.src=fr.result;
+    };
+    fr.readAsDataURL(f);
+  };
+  $('#logoDel').onclick=function(){S.co.logo='';$('#logoFile').value='';brand();save()};
+
+  /* ---------- sauvegarde ---------- */
+  $('#bkExport').onclick=function(){
+    var json=JSON.stringify(S),name='bigmax-elecprop-sauvegarde-'+todayISO()+'.json';
+    if(PWA){
+      var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([json],{type:'application/json'}));a.download=name;
+      document.body.appendChild(a);a.click();a.remove();flash('#bkMsg','Sauvegarde téléchargée.');
+    }else{
+      try{navigator.clipboard.writeText(json).then(function(){flash('#bkMsg','Sauvegarde copiée. Collez-la dans une note ou un message.')},function(){flash('#bkMsg','Copie impossible dans cette vue.')})}
+      catch(e){flash('#bkMsg','Copie impossible dans cette vue.')}
+    }
+  };
+  $('#bkImport').onchange=function(){
+    var f=this.files&&this.files[0];if(!f)return;var inp=this;
+    var fr=new FileReader();
+    fr.onload=function(){
+      try{
+        var o=JSON.parse(fr.result);
+        if(!o||typeof o!=='object'||!Array.isArray(o.docs))throw new Error('x');
+        apply(o);S.co=Object.assign(defCo(),S.co||{});
+        if(!S.cur||!S.cur.lines)S.cur=newDoc('DEVIS');
+        KEYS.forEach(function(k){if(S.f[k]!=null)$('#'+k).value=S.f[k]});
+        rowsSol();rowsBil();fillSettings();fillEditor();recalc();histRender();
+        flash('#bkMsg','Sauvegarde restaurée.');
+      }catch(err){flash('#bkMsg','Fichier non reconnu.')}
+      inp.value='';
+    };
+    fr.readAsText(f);
+  };
+  var wipeArmed=false;
+  $('#bkWipe').onclick=function(){
+    var b=this;
+    if(wipeArmed){
+      wipeArmed=false;b.textContent='Effacer toutes les données';
+      try{localStorage.removeItem('bigmax-elecprop:v1')}catch(e){}
+      S={co:defCo(),sol:[],bil:[],docs:[],cur:null,f:{}};
+      S.sol=[['Ampoules LED',9,6,5]];S.bil=[['Éclairage LED (point)',12,10,100]];S.cur=newDoc('DEVIS');
+      rowsSol();rowsBil();fillSettings();fillEditor();recalc();histRender();flash('#bkMsg','Données effacées.');
+    }else{wipeArmed=true;b.textContent='Confirmer l\'effacement';setTimeout(function(){wipeArmed=false;b.textContent='Effacer toutes les données'},4000)}
+  };
+
+  /* ---------- installation (PWA) ---------- */
+  var deferred=null;
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;$('#installBtn').hidden=false});
+  $('#installBtn').onclick=function(){if(deferred){deferred.prompt();deferred=null;this.hidden=true}};
+
+  /* ---------- onglets (hash) ---------- */
+  var TABS=['solaire','cables','bilan','devis','reglages'];
+  function route(){
+    var h=(location.hash||'').replace('#','');if(TABS.indexOf(h)<0)h='solaire';
+    TABS.forEach(function(t){$('#'+t).hidden=(t!==h)});
+    document.querySelectorAll('nav a').forEach(function(a){
+      if(a.getAttribute('href')==='#'+h)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
+    });
+    $('#preview').hidden=true;
+    window.scrollTo(0,0);
+  }
+  window.addEventListener('hashchange',route);
+
+  document.querySelectorAll('[data-pwa]').forEach(function(el){el.hidden=!PWA});
+  fill('#solPreset',PRE_SOL,'+ Appareil courant…');
+  fill('#bilPreset',PRE_BIL,'+ Récepteur courant…');
+  fill('#devPreset',PRE_DEV,'+ Article courant…');
+  load();rowsSol();rowsBil();fillSettings();fillEditor();histRender();route();recalc();
+})();
+</script>
+
+<script>if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol)){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}</script>
+</body>
+</html>
