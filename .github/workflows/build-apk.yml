@@ -23,8 +23,8 @@ jobs:
       - name: Icones
         run: |
           mkdir -p assets
-          cp icon-source.png assets/icon-only.png
-          cp icon-source.png assets/icon-foreground.png
+          cp icon-512.png assets/icon-only.png
+          cp icon-512.png assets/icon-foreground.png
           npx capacitor-assets generate --android --iconBackgroundColor '#0b66b0' || true
       - run: npx cap sync android
       - name: Cle de signature
