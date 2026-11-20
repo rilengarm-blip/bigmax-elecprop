@@ -1,4 +1,4 @@
-name: Build APK
+iname: Build APK
 on:
   workflow_dispatch:
 jobs:
@@ -25,7 +25,7 @@ jobs:
           cp icon-512.png assets/icon-only.png
           cp icon-512.png assets/icon-foreground.png
           npx capacitor-assets generate --android --iconBackgroundColor '#0b66b0' || true
-      - run: npx cap sync android
+      - run: echo npx cap sync android
       - name: Cle de signature
         run: keytool -genkeypair -keystore bigmax.jks -alias bigmax -keyalg RSA -keysize 2048 -validity 10000 -storepass bigmax2026 -keypass bigmax2026 -dname "CN=Bigmax Elecprop, C=TD"
       - name: Compiler
