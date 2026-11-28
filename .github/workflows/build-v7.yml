@@ -1,0 +1,105 @@
+name: Build APK v7
+on:
+  workflow_dispatch:
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Preparer le site
+        run: |
+          mkdir www
+          if [ -f "bigmax-v7.html" ]; then cp bigmax-v7.html www/index.html; elif [ -f "bigmax-v5.html" ]; then cp bigmax-v5.html www/index.html; elif [ -f "bigmax-v4.html" ]; then cp bigmax-v4.html www/index.html; elif [ -f "bigmax-v3.html" ]; then cp bigmax-v3.html www/index.html; elif [ -f "index (1).html" ]; then cp "index (1).html" www/index.html; else cp index.html www/index.html; fi
+          cp manifest.webmanifest sw.js icon-*.png www/
+          cat > www/sw.js <<'SWEOF'
+          self.addEventListener('install',function(e){self.skipWaiting()});
+          self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(k){return Promise.all(k.map(function(n){return caches.delete(n)}))}).then(function(){return self.registration.unregister()}))});
+          SWEOF
+          python3 -m pip install --break-system-packages pillow
+          python3 -c "from PIL import Image; a=Image.open('icon-512.png').convert('RGB'); a.resize((192,192),Image.LANCZOS).save('www/icon-192.png'); a.resize((180,180),Image.LANCZOS).save('www/icon-180.png')"
+          grep -c "Du catalogue" www/index.html
+      - run: npm install
+      - name: Plugins partage et fichiers
+        run: npm install @capacitor/share@7 @capacitor/filesystem@7
+      - run: npx cap add android
+      - name: Vider la memoire du navigateur
+        run: |
+          cat > android/app/src/main/java/td/bigmax/elecprop/MainActivity.java <<'JEOF'
+          package td.bigmax.elecprop;
+
+          import android.os.Bundle;
+          import com.getcapacitor.BridgeActivity;
+          import java.io.File;
+
+          public class MainActivity extends BridgeActivity {
+            private static void rm(File f) {
+              if (f == null || !f.exists()) return;
+              if (f.isDirectory()) {
+                File[] c = f.listFiles();
+                if (c != null) for (File x : c) rm(x);
+              }
+              f.delete();
+            }
+
+            @Override
+            public void onCreate(Bundle b) {
+              try {
+                File base = new File(getApplicationInfo().dataDir, "app_webview/Default");
+                rm(new File(base, "Service Worker"));
+                rm(new File(base, "Cache"));
+                rm(new File(base, "Code Cache"));
+                rm(new File(getCacheDir(), "org.chromium.android_webview"));
+              } catch (Exception e) {
+              }
+              super.onCreate(b);
+            }
+          }
+          JEOF
+          cat android/app/src/main/java/td/bigmax/elecprop/MainActivity.java | head -5
+      - name: Icone
+        run: |
+          python3 -m pip install --break-system-packages pillow
+          python3 - <<'PY'
+          from PIL import Image
+          R = 'android/app/src/main/res'
+          a = Image.open('icon-512.png').convert('RGB')
+          m = Image.open('icon-maskable-512.png').convert('RGB')
+          for d, s, f in [('mdpi', 48, 108), ('hdpi', 72, 162), ('xhdpi', 96, 216), ('xxhdpi', 144, 324), ('xxxhdpi', 192, 432)]:
+              a.resize((s, s), Image.LANCZOS).save(R + '/mipmap-' + d + '/ic_launcher.png')
+              a.resize((s, s), Image.LANCZOS).save(R + '/mipmap-' + d + '/ic_launcher_round.png')
+              m.resize((f, f), Image.LANCZOS).save(R + '/mipmap-' + d + '/ic_launcher_foreground.png')
+          print('icones ok')
+          PY
+      - run: npx cap sync android
+      - name: Numero de version
+        run: |
+          sed -i "s/versionCode 1/versionCode $(date +%s)/; s/versionName \"1.0\"/versionName \"7.${{ github.run_number }}\"/" android/app/build.gradle
+          grep -n "versionCode\|versionName" android/app/build.gradle
+      - name: Cle de signature
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASS }}
+        run: |
+          if [ -n "$KS_B64" ] && [ -n "$KS_PASS" ]; then
+            echo "$KS_B64" | base64 -d > bigmax.jks
+            echo "KSPASS=$KS_PASS" >> $GITHUB_ENV
+            echo "CLE PERMANENTE UTILISEE"
+          else
+            keytool -genkeypair -keystore bigmax.jks -alias bigmax -keyalg RSA -keysize 2048 -validity 10000 -storepass bigmax2026 -keypass bigmax2026 -dname "CN=Bigmax Elecprop, C=TD"
+            echo "KSPASS=bigmax2026" >> $GITHUB_ENV
+            echo "ATTENTION : cle temporaire, les mises a jour demanderont de desinstaller"
+          fi
+      - name: Compiler
+        working-directory: android
+        run: ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/bigmax.jks -Pandroid.injected.signing.store.password=$KSPASS -Pandroid.injected.signing.key.alias=bigmax -Pandroid.injected.signing.key.password=$KSPASS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bigmax-elecprop-apk
+          path: android/app/build/outputs/apk/release/*.apk
