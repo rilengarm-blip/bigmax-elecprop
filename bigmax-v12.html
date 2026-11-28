@@ -1,0 +1,2486 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b66b0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bigmax">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Bigmax Elecprop</title>
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px)}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+<style>
+/* Layout: mobile-first, one column, bottom tab bar; tools = inputs card then figures card; documents open in a paper preview */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --ink:#13202c; --muted:#5b6b7a; --line:#d6dde4;
+  --accent:#0b66b0; --accent-ink:#ffffff; --accent-soft:#e1eef9; --warm:#b36b00; --warm-soft:#fbefd9;
+  --ok:#1a7f4b; --ok-soft:#e1f4ea; --bad:#b42318; --bad-soft:#fdecea;
+  --font:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1720; --surface:#17212c; --ink:#e6edf3; --muted:#93a4b5; --line:#263341;
+  --accent:#4aa3e8; --accent-ink:#06121d; --accent-soft:#16293b; --warm:#f0b429; --warm-soft:#2e2511;
+  --ok:#4cc38a; --ok-soft:#13291f; --bad:#ff8a80; --bad-soft:#3a1c1a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1720; --surface:#17212c; --ink:#e6edf3; --muted:#93a4b5; --line:#263341;
+  --accent:#4aa3e8; --accent-ink:#06121d; --accent-soft:#16293b; --warm:#f0b429; --warm-soft:#2e2511;
+  --ok:#4cc38a; --ok-soft:#13291f; --bad:#ff8a80; --bad-soft:#3a1c1a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 96px}
+.wrap{max-width:720px;margin:0 auto}
+header{padding-block:16px 6px;display:flex;align-items:center;gap:12px}
+.mark{width:38px;height:38px;border-radius:10px;background:var(--accent);display:grid;place-items:center;flex:none;overflow:hidden}
+.mark svg{width:22px;height:22px;fill:var(--accent-ink)}
+.mark img{width:100%;height:100%;object-fit:contain;background:#fff}
+header h1{font-size:20px;margin:0;font-weight:600;letter-spacing:-.01em;line-height:1.1}
+header h1 b{color:var(--accent);font-weight:600}
+header span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:22px 0 8px;font-weight:600}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
+.grid .full{grid-column:1/-1}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);
+  border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+input[type=number]{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums}
+input[type=file]{padding:7px;font-size:14px}
+textarea{min-height:84px;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button,.btn{font:inherit;font-size:14px;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 12px;text-decoration:none;display:inline-block;text-align:center}
+button.primary,.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:500}
+button.ghost{background:transparent;color:var(--muted)}
+button.danger{color:var(--bad);border-color:var(--bad)}
+.row{border-top:1px solid var(--line);padding-top:12px;margin-top:12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 40px;gap:8px}
+.row:first-child{border-top:0;margin-top:0;padding-top:0}
+.row .name{grid-column:1/-1}
+.row .del{align-self:end;padding:9px 0;color:var(--bad)}
+.row .linetotal{grid-column:1/4;font-family:var(--mono);font-size:13px;color:var(--muted);align-self:center}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.actions select{width:auto;flex:1 1 180px}
+.figs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fig{background:var(--accent-soft);border-radius:8px;padding:10px 12px;min-width:0}
+.fig.wide{grid-column:1/-1}
+.fig small{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}
+.fig strong{font-family:var(--mono);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.fig strong i{font-style:normal;font-size:13px;color:var(--muted);margin-left:4px;font-family:var(--font);font-weight:400}
+.fig em{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:2px}
+.fig.key{background:var(--accent)}
+.fig.key small,.fig.key strong,.fig.key strong i,.fig.key em{color:var(--accent-ink)}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+.warn{background:var(--warm-soft);color:var(--warm);border-radius:8px;padding:9px 12px;font-size:13px;margin-top:10px}
+.warn.bad{background:var(--bad-soft);color:var(--bad)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td.n{font-family:var(--mono)}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+  padding:6px max(6px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px));z-index:5}
+nav div{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:2px}
+nav a{text-align:center;text-decoration:none;color:var(--muted);font-size:11.5px;padding:7px 0;border-radius:8px;font-weight:500}
+nav a svg{display:block;margin:0 auto 3px;width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+nav a[aria-current=page]{color:var(--accent);background:var(--accent-soft)}
+.sum{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:14px}
+.sum.total{border-top:2px solid var(--ink);margin-top:6px;padding-top:10px;font-weight:600;font-size:17px}
+.sum span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px;margin:14px 0 0}
+.seg button{border:0;background:transparent;color:var(--muted);font-weight:500}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.stat small{display:block;color:var(--muted);font-size:12px}
+.stat strong{display:block;font-family:var(--mono);font-size:16px;margin-top:2px;overflow-wrap:anywhere}
+.doc{border-top:1px solid var(--line);padding:12px 0;display:grid;gap:8px}
+.doc:first-child{border-top:0;padding-top:0}
+.doc .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.doc .top b{font-family:var(--mono);font-size:14px}
+.doc .amt{font-family:var(--mono);font-weight:600;white-space:nowrap}
+.doc .sub{color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.doc .btns{display:flex;flex-wrap:wrap;gap:6px}
+.doc .btns button,.doc .btns select{padding:7px 10px;font-size:13px;width:auto}
+.logoPrev{width:84px;height:84px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}
+.logoRow{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.msg{font-size:13px;color:var(--ok);margin:8px 0 0}
+
+/* ---- aperçu du document (papier) ---- */
+#preview{position:fixed;inset:0;z-index:20;background:var(--bg);overflow:auto;
+  padding:0 max(10px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(10px,env(safe-area-inset-left,0px))}
+.pvbar{position:sticky;top:0;z-index:2;background:var(--bg);display:flex;gap:8px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top,0px)) 0 10px;max-width:794px;margin:0 auto}
+.pvbar button{flex:1 1 auto}
+.paper{background:#ffffff;color:#161616;max-width:794px;margin:0 auto 24px;padding:26px;font-family:var(--font);font-size:13px;line-height:1.5;border:1px solid #d6dde4;border-radius:4px}
+.paper *{color:inherit}
+.paper .ph{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;border-bottom:2px solid #0b66b0;padding-bottom:14px}
+.paper .pco{display:flex;gap:12px;align-items:flex-start;min-width:0}
+.paper .pco img{width:64px;height:64px;object-fit:contain}
+.paper .pco b{font-size:16px}
+.paper .pti{text-align:right}
+.paper .pti h3{margin:0 0 4px;font-size:24px;letter-spacing:.06em;color:#0b66b0}
+.paper .pcl{margin:16px 0 6px;padding:10px 12px;background:#f2f5f8;border-radius:4px}
+.paper .pcl small,.paper .lab{display:block;color:#5b6b7a;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.paper table{margin-top:12px;font-size:12.5px}
+.paper th{background:#0b66b0;color:#ffffff;white-space:normal}
+.paper th,.paper td{border-bottom:1px solid #d6dde4;white-space:normal}
+.paper td.r,.paper th.r{text-align:right;white-space:nowrap}
+.paper .pt{margin:12px 0 0 auto;width:min(320px,100%)}
+.paper .pt div{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
+.paper .pt .big{border-top:2px solid #161616;margin-top:4px;padding-top:6px;font-weight:600;font-size:15px}
+.paper .pn{margin-top:16px;white-space:pre-wrap}
+.paper .sig{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}
+.paper .sig div{border:1px solid #c5ced7;border-radius:4px;min-height:84px;padding:8px;font-size:11.5px;color:#5b6b7a}
+.paper .pf{margin-top:18px;padding-top:8px;border-top:1px solid #d6dde4;text-align:center;font-size:11px;color:#5b6b7a}
+@media print{
+  @page{margin:12mm}
+  .wrap,nav{display:none!important}
+  body{padding:0!important;background:#fff!important}
+  #preview{position:static!important;inset:auto!important;overflow:visible!important;padding:0!important;background:#fff!important}
+  .pvbar{display:none!important}
+  .paper{border:0!important;margin:0!important;max-width:none!important;padding:0!important}
+  .paper th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .paper .pcl{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+/* ===== v2 : accueil, étapes, clients, catalogue, feuille de choix ===== */
+body{padding-block:0 150px}
+header .mark img{background:transparent}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{display:flex;flex-direction:column;gap:8px;align-items:flex-start;text-align:left;padding:14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);min-height:96px;font-weight:600;font-size:15px;color:var(--ink)}
+.tile svg{width:26px;height:26px;stroke:var(--accent);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tile small{font-weight:400;color:var(--muted);font-size:12px;line-height:1.3}
+.tile.main{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tile.main svg{stroke:var(--accent-ink)}
+.tile.main small{color:var(--accent-ink);opacity:.85}
+.subtabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px;margin:6px 0 0}
+.subtabs a{text-align:center;padding:9px 0;border-radius:8px;color:var(--muted);text-decoration:none;font-weight:500;font-size:14px}
+.subtabs a[aria-current=page]{background:var(--accent);color:var(--accent-ink)}
+.step{display:flex;align-items:center;gap:8px}
+.step i{font-style:normal;background:var(--accent);color:var(--accent-ink);width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;font-size:12px;letter-spacing:0;font-weight:600}
+details.opt{margin-top:10px}
+details.opt summary{cursor:pointer;color:var(--accent);font-weight:500;font-size:14px;padding:6px 0}
+.seg3{grid-template-columns:1fr 1fr 1fr}
+#bar{position:fixed;left:0;right:0;bottom:calc(62px + env(safe-area-inset-bottom,0px));z-index:4;background:var(--surface);border-top:1px solid var(--line);padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+#bar .in{max-width:720px;margin:0 auto;display:flex;gap:8px;align-items:center}
+#bar .tot{flex:1;min-width:0;font-family:var(--mono);font-weight:600;font-size:15px;overflow-wrap:anywhere}
+#bar .tot small{display:block;font-family:var(--font);font-weight:400;color:var(--muted);font-size:11px}
+#sheet{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:flex;align-items:flex-end}
+#sheet .box{background:var(--bg);width:100%;max-width:720px;margin:0 auto;max-height:88vh;border-radius:16px 16px 0 0;display:flex;flex-direction:column;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px))}
+#sheet .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+#sheet .top b{font-size:17px}
+#sheet .list{overflow-y:auto;flex:1;min-height:120px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:140px;background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:13px;z-index:40;max-width:90vw;text-align:center}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;margin-top:8px}
+.chip{flex:none;border-radius:16px;padding:6px 12px;font-size:13px}
+.chip[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.item{display:flex;justify-content:space-between;gap:10px;align-items:center;width:100%;text-align:left;padding:11px 12px;margin-bottom:6px;border-radius:10px}
+.item span:last-child{font-family:var(--mono);font-size:13px;color:var(--muted);white-space:nowrap}
+.banner{background:var(--warm-soft);color:var(--warm);border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:12px;display:flex;gap:10px;justify-content:space-between;align-items:center}
+.banner button{flex:none;padding:6px 10px;font-size:13px}
+.cli{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;padding:12px;border-radius:10px;margin-bottom:6px;align-items:center}
+.cli small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.cli .r{text-align:right;font-family:var(--mono);font-size:13px;white-space:nowrap}
+.pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:var(--accent-soft);color:var(--accent);font-family:var(--font)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warm-soft);color:var(--warm)}
+.back{display:inline-block;margin:14px 0 0;color:var(--accent);background:none;border:0;padding:6px 0;font-weight:500}
+.crow{border-top:1px solid var(--line);padding-top:12px;margin-top:12px;display:grid;grid-template-columns:96px minmax(0,1fr) 40px;gap:8px}
+.crow:first-child{border-top:0;margin-top:0;padding-top:0}
+.crow .name{grid-column:1/-1}
+.crow .del{align-self:end;padding:9px 0;color:var(--bad)}
+.row .mv{grid-column:3/5;display:flex;gap:6px;justify-content:flex-end}
+.row .mv button{padding:3px 10px;font-size:13px}
+.empty{text-align:center;color:var(--muted);padding:18px 8px;font-size:14px}
+.paper .words{margin-top:12px;font-style:italic}
+@media print{#bar,#sheet,.toast{display:none!important}}
+
+.subtabs{display:flex;overflow-x:auto;gap:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.subtabs::-webkit-scrollbar{display:none}
+.subtabs a{flex:none;padding:9px 16px}
+.tiles .tile:last-child:nth-child(odd){grid-column:1/-1}
+
+.kv{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.kv:first-child{border-top:0;padding-top:0}
+.kv span{min-width:0;font-size:15px}
+.kv span small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.kv b{font-family:var(--mono);font-weight:600;text-align:right;white-space:nowrap;font-size:15px}
+.kv.hd{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding-bottom:4px}
+ul.chk{margin:0;padding-left:20px}ul.chk li{margin:6px 0;font-size:14px;line-height:1.4}
+
+/* ===== v8 : look moderne ===== */
+header{align-items:center}
+.themeBtn{margin-left:auto;width:38px;height:38px;border-radius:50%;padding:0;font-size:18px;line-height:1;background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+.card,.stat{border-radius:14px;box-shadow:0 1px 2px rgba(10,30,50,.05),0 4px 14px rgba(10,30,50,.04)}
+.hero{background:linear-gradient(135deg,#0b66b0 0%,#0a8f8f 100%);color:#fff;border-radius:18px;padding:16px 16px 14px;margin:6px 0 14px;box-shadow:0 8px 22px rgba(11,102,176,.28);animation:rise .45s ease both}
+.heroTop{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-weight:600;font-size:15px}
+.heroTop small{font-weight:400;opacity:.8;font-size:12px}
+.heroBig{margin-top:10px}
+.heroBig small{display:block;opacity:.8;font-size:12px}
+.heroBig strong{display:block;font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:-.02em;overflow-wrap:anywhere}
+.heroRow{display:grid;grid-template-columns:1.2fr 1.2fr .6fr;gap:8px;border-top:1px solid rgba(255,255,255,.25);padding-top:10px}
+.heroRow small{display:block;opacity:.8;font-size:11px;line-height:1.2}
+.heroRow b{display:block;font-family:var(--mono);font-size:13px;font-weight:600;margin-top:2px;overflow-wrap:anywhere}
+.tile{border-radius:16px;box-shadow:0 1px 2px rgba(10,30,50,.05),0 4px 14px rgba(10,30,50,.04);transition:transform .12s ease,box-shadow .12s ease;animation:rise .4s ease both}
+.tile:active{transform:scale(.97)}
+.tile svg{width:30px;height:30px;padding:6px;box-sizing:content-box;background:var(--accent-soft);border-radius:12px}
+.tile.main{background:linear-gradient(135deg,#0b66b0,#0a8f8f);border:0;box-shadow:0 6px 16px rgba(11,102,176,.3)}
+.tile.main svg{background:rgba(255,255,255,.2);stroke:#fff}
+button.primary,.btn.primary{border-radius:10px;box-shadow:0 2px 8px rgba(11,102,176,.25)}
+button:active{transform:scale(.98)}
+.fig{border-radius:12px}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tiles .tile:nth-child(2){animation-delay:.04s}.tiles .tile:nth-child(3){animation-delay:.08s}.tiles .tile:nth-child(4){animation-delay:.12s}.tiles .tile:nth-child(5){animation-delay:.16s}.tiles .tile:nth-child(6){animation-delay:.2s}
+@media (prefers-reduced-motion:reduce){.hero,.tile{animation:none}}
+
+/* v11 : aperçu document lisible sur petit écran */
+.paper{overflow:hidden}
+.paper table{width:100%;table-layout:auto}
+@media (max-width:560px){
+  .paper{padding:14px 12px;font-size:12.5px}
+  .paper .pti{text-align:left;width:100%}
+  .paper table{font-size:11px}
+  .paper th,.paper td{padding:6px 4px}
+  .paper th{font-size:10.5px}
+  .paper .pt{width:100%}
+}
+
+/* v12 : signature */
+.sigPrev{width:120px;height:56px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}
+.sigModal{position:fixed;inset:0;z-index:40;background:rgba(10,20,30,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+.sigModal[hidden]{display:none}
+.sigBox{background:var(--surface);color:var(--ink);border-radius:16px;padding:16px;width:min(520px,100%);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.sigBox h3{margin:0 0 10px;font-size:17px}
+#sigCv{display:block;width:100%;height:200px;background:#fff;border:1.5px dashed #9fb0c0;border-radius:12px;touch-action:none;cursor:crosshair}
+.paper .sig img.sigImg{display:block;max-width:100%;max-height:64px;margin-top:4px;object-fit:contain}
+.paper .sig small{display:block;font-size:10px;color:#5b6b7a}
+</style>
+<div class="wrap">
+<header>
+  <div class="mark" id="hMark"><img alt="" src="icon-192.png"></div>
+  <div><h1 id="hTitle">Bigmax <b>Elecprop</b></h1><span>Électricité bâtiment · Énergie solaire</span></div>
+  <button class="themeBtn" id="themeBtn" aria-label="Changer le thème clair ou sombre">◐</button>
+</header>
+
+<!-- ============ ACCUEIL ============ -->
+<section id="accueil">
+  <div id="homeBanner"></div>
+  <div id="homeHero"></div>
+  <h2>Que voulez-vous faire ?</h2>
+  <div class="tiles">
+    <button class="tile main" data-go="newDevis"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M12 12v6M9 15h6"/></svg>Nouveau devis<small>Client, articles, total, PDF</small></button>
+    <button class="tile main" data-go="newFacture"><svg viewBox="0 0 24 24"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>Nouvelle facture<small>Suivi des paiements</small></button>
+    <button class="tile" data-go="#solaire"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Installation solaire<small>Panneaux, batteries, câbles</small></button>
+    <button class="tile" data-go="#cables"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>Circuit : câble et protections<small>Section, disjoncteur, différentiel</small></button>
+    <button class="tile" data-go="#bilan"><svg viewBox="0 0 24 24"><path d="M3 21V9l9-6 9 6v12z"/><path d="M9 21v-6h6v6"/></svg>Bilan de puissance<small>Bâtiment complet</small></button>
+    <button class="tile" data-go="#clients"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 010 6.8M18.5 14.8c1.8.7 2.8 2.4 3 5.2"/></svg>Clients<small>Fiches et historique</small></button>
+    <button class="tile" data-go="hist"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Documents<small>Devis et factures</small></button>
+    <button class="tile" data-go="#convert"><svg viewBox="0 0 24 24"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>Convertisseur P, U, I<small>Watts, ampères, kVA, loi d'Ohm</small></button>
+    <button class="tile" data-go="#moteur"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>Moteurs et pompes<small>Courant, protection, câble</small></button>
+    <button class="tile" data-go="#groupe"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="11" rx="2"/><path d="M7 7V4h4M9 12l2-2v3l2-2M17 18v2"/></svg>Groupe électrogène<small>Puissance, carburant, câble</small></button>
+    <button class="tile" data-go="#regl"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Réglages contrôleur<small>MPPT, PWM, hybride</small></button>
+    <button class="tile" data-go="#catalogue"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/><circle cx="7" cy="5" r=".6"/><circle cx="7" cy="12" r=".6"/><circle cx="7" cy="19" r=".6"/></svg>Catalogue de prix<small>Matériel et main d'œuvre</small></button>
+  </div>
+  <h2>En cours</h2>
+  <div class="stats" id="homeStats"></div>
+  <h2>Derniers documents</h2>
+  <div class="card" id="homeRecent"></div>
+</section>
+
+<div class="subtabs" id="calcTabs" hidden>
+  <a href="#solaire">Solaire</a><a href="#cables">Câbles</a><a href="#bilan">Bilan</a><a href="#convert">Convertir</a><a href="#moteur">Moteur</a><a href="#groupe">Groupe</a><a href="#regl">Réglages</a>
+</div>
+
+<!-- ============ SOLAIRE ============ -->
+<section id="solaire" class="calc" hidden>
+  <h2>Consommation à alimenter</h2>
+  <div class="card">
+    <div id="solRows"></div>
+    <div class="actions">
+      <button class="primary" id="solAdd">+ Appareil</button>
+      <select id="solPreset" aria-label="Ajouter un appareil courant"></select>
+    </div>
+    <div class="figs" style="margin-top:14px">
+      <div class="fig"><small>Énergie par jour</small><strong id="solWh">0<i>Wh</i></strong></div>
+      <div class="fig"><small>Puissance cumulée</small><strong id="solW">0<i>W</i></strong></div>
+    </div>
+  </div>
+
+  <h2>Paramètres de l'installation</h2>
+  <div class="card">
+    <div class="grid">
+      <label class="full">Type de système
+        <select id="sSys"><option value="mppt" selected>Régulateur MPPT + onduleur</option><option value="hyb">Onduleur hybride (MPPT intégré)</option><option value="pwm">Régulateur PWM + onduleur</option></select></label>
+      <label>Tension du système
+        <select id="sVsys"><option>12</option><option selected>24</option><option>48</option></select></label>
+      <label>Heures de soleil équivalentes / jour
+        <input id="sSun" type="number" inputmode="decimal" value="5.5" step="0.1" min="1" max="8"></label>
+      <label>Puissance d'un panneau (Wc)
+        <input id="sWc" type="number" inputmode="decimal" value="315" min="10"></label>
+      <label>Tension Voc d'un panneau (V)
+        <input id="sVoc" type="number" inputmode="decimal" value="40.5" step="0.1"></label>
+      <label>Courant Isc d'un panneau (A)
+        <input id="sIsc" type="number" inputmode="decimal" value="9.6" step="0.1"></label>
+      <label>Voc max du régulateur MPPT (V)
+        <input id="sVocMax" type="number" inputmode="decimal" value="150"></label>
+      <label>Rendement global du système (%)
+        <input id="sEff" type="number" inputmode="decimal" value="75" min="40" max="95"></label>
+      <label>Type de batterie
+        <select id="sBat"><option value="50">Plomb / gel / AGM (50 % de décharge)</option><option value="80">Lithium LiFePO4 (80 %)</option></select></label>
+      <label>Autonomie voulue (jours)
+        <input id="sAut" type="number" inputmode="decimal" value="1" step="0.5" min="0.5"></label>
+      <label>Capacité d'une batterie (Ah)
+        <input id="sAh" type="number" inputmode="decimal" value="200" min="5"></label>
+      <label>Tension d'une batterie (V)
+        <select id="sVb"><option selected>12</option><option>6</option><option>2</option><option>24</option><option>48</option></select></label>
+      <label>Simultanéité des appareils (%)
+        <input id="sSim" type="number" inputmode="decimal" value="80" min="10" max="100"></label>
+      <label>Câble panneaux → régulateur (m, aller)
+        <input id="sLpv" type="number" inputmode="decimal" value="15" min="1"></label>
+      <label>Câble batteries → onduleur (m, aller)
+        <input id="sLbat" type="number" inputmode="decimal" value="2" step="0.5" min="0.5"></label>
+    </div>
+    <details class="opt"><summary>Fiche technique du panneau et du régulateur (vérification pro)</summary>
+      <div class="grid">
+        <label>Vmp du panneau (V)<input id="sVmp" type="number" inputmode="decimal" value="32.7" step="0.1"></label>
+        <label>Imp du panneau (A)<input id="sImp" type="number" inputmode="decimal" value="9.63" step="0.01"></label>
+        <label>Coefficient Voc (%/°C)<input id="sKvoc" type="number" inputmode="decimal" value="-0.29" step="0.01"></label>
+        <label>Température mini (°C)<input id="sTmin" type="number" inputmode="decimal" value="10"></label>
+        <label>Tension mini de démarrage du MPPT (V)<input id="sVmin" type="number" inputmode="decimal" placeholder="auto"></label>
+        <label>Courant max du régulateur (A)<input id="sIreg" type="number" inputmode="decimal" placeholder="facultatif"></label>
+      </div>
+      <p class="note">Ces valeurs figurent sur l'étiquette du panneau et la fiche du régulateur. Elles servent à vérifier la tension à froid et à chaud.</p>
+    </details>
+  </div>
+
+  <h2>Résultat</h2>
+  <div class="card">
+    <div class="figs" id="solRes"></div>
+    <div id="solWarn"></div>
+    <div class="actions"><button class="primary" id="solToDevis">Créer le devis solaire complet</button><button id="solShare" hidden>Partager le résumé</button><button id="solPdf" hidden>Note de calcul PDF</button></div>
+    <p class="note">Dimensionnement indicatif. Vérifier les fiches techniques du panneau, du régulateur et de l'onduleur avant l'achat.</p>
+  </div>
+  <div id="solProt"></div>
+  <h2 id="solSchemaH" hidden>Schéma de l'installation</h2>
+  <div class="card" id="solSchema" hidden></div>
+</section>
+
+<!-- ============ CÂBLES ============ -->
+<section id="cables" class="calc" hidden>
+  <h2>Section de câble et protection</h2>
+  <div class="card">
+    <div class="grid">
+      <label class="full">Type de charge
+        <select id="cLoad"><option value="">Personnalisé</option><option value="ecl">Éclairage (cos φ 0,9)</option><option value="pri">Prises (cos φ 0,9)</option><option value="clim">Climatiseur (cos φ 0,8)</option><option value="res">Chauffe-eau, plaque (cos φ 1)</option><option value="mot">Moteur, pompe (cos φ 0,8)</option></select></label>
+      <label>Type de circuit
+        <select id="cMode"><option value="dc">Courant continu (solaire, batterie)</option><option value="mono" selected>Monophasé</option><option value="tri">Triphasé</option></select></label>
+      <label>Tension (V)
+        <input id="cU" type="number" inputmode="decimal" value="220"></label>
+      <label>Courant (A)
+        <input id="cI" type="number" inputmode="decimal" placeholder="si connu" value=""></label>
+      <label>ou Puissance (W)
+        <input id="cP" type="number" inputmode="decimal" value="3000"></label>
+      <label>Facteur de puissance (cos φ)
+        <input id="cCos" type="number" inputmode="decimal" value="0.9" step="0.05" min="0.5" max="1"></label>
+      <label>Longueur aller simple (m)
+        <input id="cL" type="number" inputmode="decimal" value="25" min="1"></label>
+      <label>Chute de tension max (%)
+        <select id="cDv"><option>1</option><option>2</option><option selected>3</option><option>5</option></select></label>
+      <label>Conducteur
+        <select id="cMat"><option value="cu" selected>Cuivre</option><option value="al">Aluminium</option></select></label>
+      <label class="full">Température ambiante
+        <select id="cTemp"><option value="1">30 °C</option><option value="0.91" selected>40 °C (chaud, Tchad)</option><option value="0.82">50 °C (sous toiture)</option></select></label>
+    </div>
+  </div>
+  <div class="card">
+    <div class="figs" id="cabRes"></div>
+    <div id="cabWarn"></div>
+    <div class="actions"><button class="primary" id="cToDevis" hidden>Ajouter au devis</button></div>
+    <p class="note">Si le courant est vide, il est calculé à partir de la puissance. En solaire continu, prévoir un câble solaire double isolation et un calibre de protection d'au moins 1,25 × le courant des panneaux.</p>
+  </div>
+
+  <h2>Circuits usuels (bâtiment)</h2>
+  <div class="card tbl">
+    <table>
+      <tr><th>Circuit</th><th>Section</th><th>Disjoncteur</th></tr>
+      <tr><td>Éclairage</td><td class="n">1,5 mm²</td><td class="n">10 A</td></tr>
+      <tr><td>Prises 2P+T</td><td class="n">2,5 mm²</td><td class="n">16 A</td></tr>
+      <tr><td>Prises cuisine, lave-linge</td><td class="n">2,5 mm²</td><td class="n">20 A</td></tr>
+      <tr><td>Climatiseur / chauffe-eau</td><td class="n">2,5 à 4 mm²</td><td class="n">20 A</td></tr>
+      <tr><td>Cuisinière électrique</td><td class="n">6 mm²</td><td class="n">32 A</td></tr>
+      <tr><td>Terre</td><td class="n">= section phase</td><td class="n">–</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============ BILAN ============ -->
+<section id="bilan" class="calc" hidden>
+  <h2>Bilan de puissance du bâtiment</h2>
+  <div class="card">
+    <div id="bilRows"></div>
+    <div class="actions">
+      <button class="primary" id="bilAdd">+ Récepteur</button>
+      <select id="bilPreset" aria-label="Ajouter un récepteur courant"></select>
+    </div>
+  </div>
+  <div class="card">
+    <div class="grid">
+      <label>Alimentation
+        <select id="bType"><option value="mono" selected>Monophasé</option><option value="tri">Triphasé</option></select></label>
+      <label>Tension (V)
+        <input id="bU" type="number" inputmode="decimal" value="220"></label>
+      <label>cos φ moyen
+        <input id="bCos" type="number" inputmode="decimal" value="0.85" step="0.05" min="0.5" max="1"></label>
+      <label>Réserve pour extension (%)
+        <input id="bRes" type="number" inputmode="decimal" value="20" min="0" max="100"></label>
+    </div>
+  </div>
+  <h2>Résultat</h2>
+  <div class="card">
+    <div class="figs" id="bilRes"></div>
+    <p class="note">Le coefficient de simultanéité est le pourcentage d'une ligne susceptible de fonctionner en même temps que les autres.</p>
+  </div>
+</section>
+
+<!-- ============ CONVERTIR ============ -->
+<section id="convert" class="calc" hidden>
+  <h2>Puissance, courant, tension</h2>
+  <div class="card">
+    <div class="grid">
+      <label>Réseau
+        <select id="vType"><option value="mono" selected>Monophasé</option><option value="tri">Triphasé</option><option value="dc">Courant continu</option></select></label>
+      <label>Tension (V)
+        <input id="vU" type="number" inputmode="decimal" value="220"></label>
+      <label>Je connais
+        <select id="vKnow"><option value="W" selected>La puissance (W)</option><option value="kW">La puissance (kW)</option><option value="CV">La puissance (CV)</option><option value="A">Le courant (A)</option><option value="kVA">La puissance apparente (kVA)</option></select></label>
+      <label>Valeur
+        <input id="vVal" type="number" inputmode="decimal" value="3000"></label>
+      <label class="full">Facteur de puissance (cos φ)
+        <input id="vCos" type="number" inputmode="decimal" value="0.9" step="0.05" min="0.1" max="1"></label>
+    </div>
+  </div>
+  <div class="card"><div class="figs" id="vRes"></div>
+    <p class="note">Monophasé : P = U × I × cos φ. Triphasé : P = √3 × U × I × cos φ. 1 CV = 736 W.</p></div>
+
+  <h2>Loi d'Ohm</h2>
+  <div class="card">
+    <div class="grid">
+      <label>Tension U (V)<input id="oU" type="number" inputmode="decimal" value="220"></label>
+      <label>Courant I (A)<input id="oI" type="number" inputmode="decimal" value="10"></label>
+      <label class="full">Résistance R (Ω)<input id="oR" type="number" inputmode="decimal" placeholder="à trouver"></label>
+    </div>
+    <p class="note">Laissez vide la grandeur à trouver.</p>
+    <div class="figs" id="oRes" style="margin-top:10px"></div>
+  </div>
+
+  <h2>Énergie et coût</h2>
+  <div class="card">
+    <div class="grid">
+      <label>Puissance (W)<input id="eP" type="number" inputmode="decimal" value="1000"></label>
+      <label>Heures par jour<input id="eH" type="number" inputmode="decimal" value="5" step="0.5"></label>
+      <label>Jours par mois<input id="eD" type="number" inputmode="decimal" value="30"></label>
+      <label>Prix du kWh<input id="eC" type="number" inputmode="decimal" placeholder="facultatif"></label>
+    </div>
+    <div class="figs" id="eRes" style="margin-top:10px"></div>
+  </div>
+</section>
+
+<!-- ============ MOTEURS ET POMPES ============ -->
+<section id="moteur" class="calc" hidden>
+  <h2>Dimensionner une pompe</h2>
+  <div class="card">
+    <div class="grid">
+      <label>Débit voulu (m³/h)<input id="pQ" type="number" inputmode="decimal" value="3" step="0.5"></label>
+      <label>Hauteur totale HMT (m)<input id="pH" type="number" inputmode="decimal" value="40"></label>
+      <label class="full">Rendement de la pompe (%)<input id="pEta" type="number" inputmode="decimal" value="50" min="20" max="85"></label>
+    </div>
+    <div class="figs" id="pRes" style="margin-top:10px"></div>
+    <div class="actions"><button id="pUse">Utiliser comme puissance du moteur</button></div>
+    <p class="note">HMT = hauteur de pompage + pertes de charge des tuyaux (comptez 10 à 20 % de la hauteur).</p>
+  </div>
+
+  <h2>Moteur</h2>
+  <div class="card">
+    <div class="grid">
+      <label>Alimentation
+        <select id="mType"><option value="mono">Monophasé</option><option value="tri" selected>Triphasé</option></select></label>
+      <label>Tension (V)<input id="mU" type="number" inputmode="decimal" value="400"></label>
+      <label>Puissance du moteur<input id="mP" type="number" inputmode="decimal" value="1.5" step="0.05"></label>
+      <label>Unité<select id="mUnit"><option value="kW" selected>kW</option><option value="CV">CV</option></select></label>
+      <label>Rendement (%)<input id="mEta" type="number" inputmode="decimal" value="80"></label>
+      <label>cos φ<input id="mCos" type="number" inputmode="decimal" value="0.8" step="0.05"></label>
+      <label class="full">Mode de démarrage
+        <select id="mStart"><option value="direct" selected>Direct (×6)</option><option value="yd">Étoile-triangle (×2)</option><option value="soft">Démarreur progressif (×3)</option><option value="vfd">Variateur de vitesse (×1,2)</option></select></label>
+      <label>Longueur du câble (m)<input id="mL" type="number" inputmode="decimal" value="30"></label>
+      <label>Chute de tension max (%)<select id="mDv"><option>2</option><option selected>3</option><option>5</option></select></label>
+      <label class="full">Température ambiante
+        <select id="mTemp"><option value="1">30 °C</option><option value="0.91" selected>40 °C (chaud, Tchad)</option><option value="0.82">50 °C (sous toiture)</option></select></label>
+    </div>
+  </div>
+  <div class="card">
+    <div class="figs" id="mRes"></div>
+    <div id="mWarn"></div>
+    <div class="actions"><button class="primary" id="mToDevis" hidden>Ajouter au devis</button></div>
+    <p class="note">Valeurs indicatives. Vérifier la plaque du moteur et les fiches des fabricants (disjoncteur moteur, contacteur, relais thermique).</p>
+  </div>
+</section>
+
+<!-- ============ GROUPE ÉLECTROGÈNE ============ -->
+<section id="groupe" class="calc" hidden>
+  <h2>Appareils à alimenter</h2>
+  <div class="card">
+    <div id="grpRows"></div>
+    <div class="actions">
+      <button class="primary" id="grpAdd">+ Appareil</button>
+      <select id="grpPreset" aria-label="Ajouter un appareil courant"></select>
+    </div>
+    <p class="note">« Démarrage × » : 1 pour les lampes et appareils simples, 2 à 3 pour les ventilateurs, frigos, climatiseurs, pompes.</p>
+  </div>
+  <h2>Paramètres</h2>
+  <div class="card">
+    <div class="grid">
+      <label>Réseau
+        <select id="gType"><option value="mono">Monophasé</option><option value="tri" selected>Triphasé</option></select></label>
+      <label>Tension (V)<input id="gU" type="number" inputmode="decimal" value="400"></label>
+      <label>cos φ<input id="gCos" type="number" inputmode="decimal" value="0.8" step="0.05"></label>
+      <label>Carburant
+        <select id="gFuel"><option value="diesel" selected>Gasoil</option><option value="essence">Essence</option></select></label>
+      <label>Heures par jour<input id="gH" type="number" inputmode="decimal" value="6" step="0.5"></label>
+      <label>Prix du litre<input id="gPrice" type="number" inputmode="decimal" placeholder="facultatif"></label>
+      <label>Câble groupe → tableau (m)<input id="gL" type="number" inputmode="decimal" value="10"></label>
+      <label>Température<select id="gTemp"><option value="1">30 °C</option><option value="0.91" selected>40 °C</option><option value="0.82">50 °C</option></select></label>
+    </div>
+  </div>
+  <h2>Résultat</h2>
+  <div class="card">
+    <div class="figs" id="gRes"></div>
+    <div id="gWarn"></div>
+    <p class="note">Règle pratique : charge permanente à 80 % au plus de la puissance du groupe, pointe de démarrage jusqu'à 1,5 fois cette puissance. Consommation estimée, à confirmer avec la fiche du fabricant.</p>
+  </div>
+</section>
+
+<!-- ============ RÉGLAGES CONTRÔLEUR ============ -->
+<section id="regl" class="calc" hidden>
+  <h2>Votre matériel</h2>
+  <div class="card">
+    <div class="grid">
+      <label class="full">Type d'appareil
+        <select id="rDev"><option value="mppt" selected>Régulateur MPPT</option><option value="pwm">Régulateur PWM</option><option value="hyb">Onduleur hybride (onduleur-chargeur)</option></select></label>
+      <label class="full">Type de batterie
+        <select id="rBat"><option value="open" selected>Plomb ouvert (liquide)</option><option value="agm">AGM</option><option value="gel">Gel</option><option value="lfp">Lithium LiFePO4</option></select></label>
+      <label>Température des batteries (°C)
+        <input id="rT" type="number" inputmode="decimal" value="35"></label>
+      <label>Capacité totale du parc (Ah)
+        <input id="rAh" type="number" inputmode="decimal" placeholder="auto"></label>
+    </div>
+    <p class="note" id="rInfo"></p>
+  </div>
+  <h2>Réglages à programmer</h2>
+  <div class="card">
+    <div id="rRes"></div>
+    <div id="rWarn"></div>
+    <div class="actions"><button class="primary" id="rShare">Partager ces réglages</button></div>
+    <p class="note">Valeurs usuelles pour batteries de 12 V (multipliées pour 24 V et 48 V). Si le fabricant de la batterie donne d'autres valeurs, elles ont priorité.</p>
+  </div>
+</section>
+
+<!-- ============ DEVIS / FACTURES ============ -->
+<section id="devis" hidden>
+  <div class="seg" role="group" aria-label="Vue">
+    <button id="subEditBtn" aria-pressed="true">Document</button>
+    <button id="subHistBtn" aria-pressed="false">Historique</button>
+  </div>
+
+  <div id="subEdit">
+    <div class="seg" role="group" aria-label="Type de document" style="margin-top:12px">
+      <button id="tyDevis" aria-pressed="true">Devis</button>
+      <button id="tyFact" aria-pressed="false">Facture</button>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="grid">
+        <label>Statut <select id="dStatus" data-doc="status"></select></label>
+        <label>Numéro <input id="dNum" data-doc="num" type="text" autocomplete="off"></label>
+      </div>
+      <details class="opt"><summary>Date et validité</summary>
+        <div class="grid">
+          <label>Date <input id="dDate" data-doc="date" type="date"></label>
+          <label><span id="dValidLbl">Validité (jours)</span>
+            <input id="dValid" data-doc="valid" type="number" inputmode="numeric" min="0"></label>
+        </div>
+      </details>
+    </div>
+
+    <h2 class="step"><i>1</i> Client</h2>
+    <div class="card">
+      <div class="grid">
+        <label class="full">Choisir un client existant
+          <select id="dcPick"></select></label>
+        <label class="full">Nom du client
+          <input id="dcName" data-doc="client.name" type="text" autocomplete="off"></label>
+        <label>Téléphone
+          <input id="dcTel" data-doc="client.tel" type="tel" autocomplete="off"></label>
+        <label>Adresse du chantier
+          <input id="dcAddr" data-doc="client.addr" type="text" autocomplete="off"></label>
+      </div>
+    </div>
+
+    <h2 class="step"><i>2</i> Travaux</h2>
+    <div class="card">
+      <label>Objet des travaux
+        <input id="dObj" data-doc="obj" type="text" placeholder="Installation solaire 24 V, villa" autocomplete="off"></label>
+    </div>
+
+    <h2 class="step"><i>3</i> Articles</h2>
+    <div class="card">
+      <div id="devRows"></div>
+      <div class="actions">
+        <button class="primary" id="devCat">+ Du catalogue</button>
+        <button id="devAdd">+ Ligne libre</button>
+      </div>
+    </div>
+
+    <h2 class="step"><i>4</i> Total</h2>
+    <div class="card">
+      <div id="devTot"></div>
+      <details class="opt"><summary>Remise, TVA, acompte</summary>
+        <div class="grid">
+          <label>Remise (%)<input id="dRem" data-doc="rem" type="number" inputmode="decimal" min="0" max="100"></label>
+          <label>TVA (%)<input id="dTva" data-doc="tva" type="number" inputmode="decimal" min="0" max="30"></label>
+          <label class="full">Acompte demandé (%)<input id="dAco" data-doc="acompte" type="number" inputmode="decimal" min="0" max="100"></label>
+        </div>
+      </details>
+      <div id="paidBox" hidden style="margin-top:10px">
+        <label>Déjà encaissé sur cette facture<input id="dPaid" data-doc="paid" type="number" inputmode="decimal" min="0"></label>
+        <div class="actions"><button id="devPaidAll">Marquer comme entièrement payée</button></div>
+      </div>
+      <details class="opt"><summary>Conditions et remarques</summary>
+        <label>Conditions<textarea id="dNotes" data-doc="notes"></textarea></label>
+      </details>
+    </div>
+
+    <h2>Signature</h2>
+    <div class="card">
+      <div class="logoRow">
+        <img class="sigPrev" id="sigPrev" alt="Signature du client" hidden>
+        <div style="flex:1 1 200px;min-width:0">
+          <p class="note" id="sigInfo" style="margin:0 0 8px"></p>
+          <div class="actions"><button class="primary" id="sigClient">Faire signer le client</button><button class="ghost" id="sigClientDel" hidden>Effacer</button></div>
+        </div>
+      </div>
+    </div>
+
+    <h2>Envoyer</h2>
+    <div class="card">
+      <div class="actions">
+        <button class="primary" id="devPdf">Partager le PDF</button>
+        <button id="devPrev">Aperçu</button>
+      </div>
+      <div class="actions">
+        <a class="btn" id="devWa" target="_blank" rel="noopener">WhatsApp (texte)</a>
+        <button id="devCopy">Copier le texte</button>
+        <button class="ghost" id="devNew">Nouveau</button>
+      </div>
+      <p class="msg" id="devMsg" hidden></p>
+    </div>
+  </div>
+
+  <div id="subHist" hidden>
+    <h2>Activité</h2>
+    <div class="stats" id="stats"></div>
+    <div class="card">
+      <label>Rechercher un client ou un numéro
+        <input id="hFilter" type="search" autocomplete="off"></label>
+      <div class="chips" id="hChips">
+        <button class="chip" data-hf="all" aria-pressed="true">Tout</button>
+        <button class="chip" data-hf="DEVIS" aria-pressed="false">Devis</button>
+        <button class="chip" data-hf="FACTURE" aria-pressed="false">Factures</button>
+        <button class="chip" data-hf="due" aria-pressed="false">Impayées</button>
+      </div>
+      <div id="hList"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CLIENTS ============ -->
+<section id="clients" hidden>
+  <div id="cliList">
+    <h2>Mes clients</h2>
+    <div class="card">
+      <label>Rechercher<input id="cliFilter" type="search" autocomplete="off" placeholder="Nom ou téléphone"></label>
+      <div class="actions"><button class="primary" id="cliNew">+ Nouveau client</button></div>
+      <div id="cliNewBox" hidden style="margin-top:12px">
+        <div class="grid">
+          <label class="full">Nom<input id="ncName" type="text" autocomplete="off"></label>
+          <label>Téléphone<input id="ncTel" type="tel" autocomplete="off"></label>
+          <label>Adresse<input id="ncAddr" type="text" autocomplete="off"></label>
+        </div>
+        <div class="actions"><button class="primary" id="ncSave">Enregistrer le client</button><button class="ghost" id="ncCancel">Annuler</button></div>
+      </div>
+    </div>
+    <div id="cliItems"></div>
+  </div>
+  <div id="cliView" hidden></div>
+</section>
+
+<!-- ============ CATALOGUE ============ -->
+<section id="catalogue" hidden>
+  <button class="back" data-go="#plus">‹ Plus</button>
+  <h2>Catalogue de prix</h2>
+  <div class="card">
+    <p class="note" style="margin-top:0">Entrez vos prix une seule fois. Ils sont ensuite proposés dans chaque devis, en un toucher.</p>
+    <label>Rechercher<input id="catFilter" type="search" autocomplete="off"></label>
+    <div class="actions"><button class="primary" id="catNew">+ Nouvel article</button></div>
+    <div id="catNewBox" hidden style="margin-top:12px">
+      <div class="grid">
+        <label class="full">Désignation<input id="nkName" type="text" autocomplete="off"></label>
+        <label>Catégorie<input id="nkCat" type="text" list="catList" autocomplete="off" placeholder="Solaire"></label>
+        <label>Unité<select id="nkUnit"></select></label>
+        <label class="full">Prix unitaire<input id="nkPrice" type="number" inputmode="decimal" placeholder="0"></label>
+      </div>
+      <datalist id="catList"></datalist>
+      <div class="actions"><button class="primary" id="nkSave">Ajouter</button><button class="ghost" id="nkCancel">Annuler</button></div>
+    </div>
+  </div>
+  <div id="catItems"></div>
+</section>
+
+<!-- ============ PLUS ============ -->
+<section id="plus" hidden>
+  <h2>Raccourcis</h2>
+  <div class="tiles">
+    <button class="tile" data-go="#catalogue"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>Catalogue de prix<small id="catCount"></small></button>
+    <button class="tile" data-go="#clients"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/></svg>Clients<small id="cliCount"></small></button>
+  </div>
+
+  <h2>Mon entreprise</h2>
+  <div class="card">
+    <div class="grid">
+      <label class="full">Nom de l'entreprise<input id="coName" data-co="name" type="text" autocomplete="off"></label>
+      <label class="full">Slogan ou activité<input id="coSlogan" data-co="slogan" type="text" autocomplete="off"></label>
+      <label>Téléphone<input id="coPhone" data-co="phone" type="tel" autocomplete="off"></label>
+      <label>E-mail<input id="coEmail" data-co="email" type="email" autocomplete="off"></label>
+      <label class="full">Adresse<input id="coAddr" data-co="addr" type="text" autocomplete="off"></label>
+      <label class="full">Identifiants légaux (RCCM, NIF)<input id="coId" data-co="id" type="text" placeholder="RCCM TD-NDJ-…  NIF …" autocomplete="off"></label>
+      <label class="full">Moyens de paiement (Mobile money, banque)
+        <textarea id="coPay" data-co="pay" placeholder="Airtel Money : …&#10;Moov Money : …"></textarea></label>
+    </div>
+    <div class="logoRow" style="margin-top:12px">
+      <img class="logoPrev" id="logoPrev" alt="Logo" hidden>
+      <div style="flex:1 1 200px;min-width:0">
+        <label>Logo pour les documents (image)<input id="logoFile" type="file" accept="image/*"></label>
+        <button class="ghost" id="logoDel" hidden style="margin-top:6px">Retirer le logo</button>
+      </div>
+    </div>
+    <div class="logoRow" style="margin-top:12px">
+      <img class="sigPrev" id="sigCoPrev" alt="Signature de l'entreprise" hidden>
+      <div style="flex:1 1 200px;min-width:0">
+        <label>Signature ou cachet de l'entreprise (imprimé sur tous les documents)</label>
+        <div class="actions"><button id="sigCoDraw">Dessiner ma signature</button><button class="ghost" id="sigCoDel" hidden>Retirer</button></div>
+        <label style="margin-top:8px">Ou importer une image du cachet<input id="sigCoFile" type="file" accept="image/*"></label>
+      </div>
+    </div>
+  </div>
+
+  <h2>Valeurs par défaut</h2>
+  <div class="card">
+    <div class="grid">
+      <label>Devise<input id="coCur" data-co="cur" type="text" autocomplete="off"></label>
+      <label>TVA (%)<input id="coTva" data-co="tva" type="number" inputmode="decimal" min="0" max="30"></label>
+      <label>Validité / délai (jours)<input id="coValid" data-co="valid" type="number" inputmode="numeric" min="0"></label>
+      <label>Indicatif pays (WhatsApp)<input id="coCc" data-co="cc" type="text" inputmode="numeric" autocomplete="off"></label>
+      <label>Préfixe devis<input id="coPd" data-co="prefDev" type="text" maxlength="6" autocomplete="off"></label>
+      <label>Préfixe facture<input id="coPf" data-co="prefFac" type="text" maxlength="6" autocomplete="off"></label>
+      <label class="full">Conditions par défaut
+        <textarea id="coCond" data-co="cond"></textarea></label>
+    </div>
+    <p class="note">Ces valeurs s'appliquent aux nouveaux documents.</p>
+  </div>
+
+  <div id="installCard" data-pwa hidden>
+    <h2>Installation</h2>
+    <div class="card">
+      <button class="primary" id="installBtn" hidden>Installer l'application sur ce téléphone</button>
+      <p class="note" id="installHint">Sur iPhone : ouvrez le menu Partager de Safari puis « Sur l'écran d'accueil ». Sur Android : menu de Chrome puis « Installer l'application ».</p>
+    </div>
+  </div>
+
+  <h2>Sauvegarde des données</h2>
+  <div class="card">
+    <p class="note" style="margin-top:0">Vos clients, devis et réglages sont gardés sur cet appareil. Faites une sauvegarde régulière et envoyez-la vers WhatsApp, Drive ou votre messagerie.</p>
+    <p class="note" id="bkLast"></p>
+    <div class="actions">
+      <button class="primary" id="bkExport">Sauvegarder (partager le fichier)</button>
+      <button id="bkCopy">Copier le texte</button>
+    </div>
+    <label style="margin-top:12px">Restaurer depuis un fichier de sauvegarde
+      <input id="bkImport" type="file" accept=".json,application/json"></label>
+    <label style="margin-top:12px">Ou coller le texte de la sauvegarde
+      <textarea id="bkPaste" placeholder="Collez ici le texte copié"></textarea></label>
+    <div class="actions"><button id="bkPasteGo">Restaurer depuis le texte</button></div>
+    <div class="actions"><button class="danger" id="bkWipe">Effacer toutes les données</button></div>
+    <p class="msg" id="bkMsg" hidden></p>
+  </div>
+
+  <h2>À propos</h2>
+  <div class="card">
+    <p class="note" style="margin-top:0">Bigmax Elecprop, version 2.0. Les calculs de dimensionnement sont indicatifs et ne remplacent ni les fiches techniques des fabricants, ni les normes en vigueur, ni la responsabilité de l'installateur.</p>
+  </div>
+  <p class="note" style="text-align:center;margin:18px 0 0">Bigmax Elecprop · version 12</p>
+</section>
+</div>
+
+<div id="bar" hidden>
+  <div class="in">
+    <div class="tot"><small id="barLbl">Total</small><span id="barTot">0</span></div>
+    <button id="barPrev">Aperçu</button>
+    <button class="primary" id="barSave">Enregistrer</button>
+  </div>
+</div>
+
+<div id="sheet" hidden>
+  <div class="box">
+    <div class="top"><b>Catalogue</b><button class="primary" id="sheetClose">Terminé</button></div>
+    <input id="sheetSearch" type="search" placeholder="Rechercher un article" autocomplete="off">
+    <div class="chips" id="sheetChips"></div>
+    <div class="list" id="sheetList"></div>
+  </div>
+</div>
+
+<div id="sigModal" class="sigModal" hidden role="dialog" aria-modal="true" aria-labelledby="sigTitle">
+  <div class="sigBox">
+    <h3 id="sigTitle">Signature</h3>
+    <canvas id="sigCv" aria-label="Zone de signature"></canvas>
+    <p class="note" style="margin:6px 0 10px">Signez avec le doigt dans le cadre.</p>
+    <div class="actions"><button id="sigCancel">Annuler</button><button id="sigClear">Effacer</button><button class="primary" id="sigOk">Valider</button></div>
+  </div>
+</div>
+<div id="preview" hidden>
+  <div class="pvbar">
+    <button id="pvClose">Fermer</button>
+    <button class="primary" id="pvPdf">Partager le PDF</button>
+    <button id="pvPrint" data-pwa>Imprimer</button>
+  </div>
+  <div class="paper" id="paper"></div>
+</div>
+
+<nav aria-label="Navigation"><div>
+  <a href="#accueil" data-nav="accueil"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Accueil</a>
+  <a href="#solaire" data-nav="calculs"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Calculs</a>
+  <a href="#devis" data-nav="devis"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg>Devis</a>
+  <a href="#clients" data-nav="clients"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 010 6.8M18.5 14.8c1.8.7 2.8 2.4 3 5.2"/></svg>Clients</a>
+  <a href="#plus" data-nav="plus"><svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Plus</a>
+</div></nav>
+<script>
+(function(){
+  var NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+  var $=function(s){return document.querySelector(s)};
+  var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
+  var num=function(id){var v=parseFloat(String($(id).value).replace(',','.'));return isFinite(v)?v:0};
+  var fmt=function(n,d){return (+n).toLocaleString('fr-FR',{maximumFractionDigits:d==null?0:d,minimumFractionDigits:0})};
+  var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+  var pad=function(n,w){var s=String(n);while(s.length<w)s='0'+s;return s};
+  var firstGE=function(arr,v){for(var i=0;i<arr.length;i++){if(arr[i]>=v)return arr[i]}return null};
+  var parseNum=function(v){return parseFloat(String(v).replace(',','.'))||0};
+  var norm=function(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim()};
+  var uid=function(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)};
+
+  var STD_S=[1.5,2.5,4,6,10,16,25,35,50,70,95,120,150,185,240];
+  var AMP={1.5:16,2.5:21,4:27,6:34,10:46,16:62,25:80,35:99,50:119,70:151,95:182,120:210,150:240,185:273,240:320};
+  var BRK=[6,10,16,20,25,32,40,50,63,80,100,125,160,200,250,400];
+  var INV=[300,500,800,1000,1500,2000,3000,4000,5000,6000,8000,10000,12000,15000];
+  var MPPT=[10,15,20,30,40,45,60,80,100];
+  var UNITS=['u','m','m²','forfait','lot','h','jour'];
+  var STATUS={DEVIS:['Brouillon','Envoyé','Accepté','Refusé'],FACTURE:['Émise','Partiellement payée','Payée']};
+
+  var PRE_SOL=[['Ampoule LED',9,1,5],['Ventilateur',60,1,8],['Télévision LED',80,1,5],['Décodeur',20,1,8],['Réfrigérateur',150,1,10],['Congélateur',200,1,10],['Chargeur téléphone',10,1,3],['Ordinateur portable',65,1,4],['Fer à repasser',1000,1,0.5],['Pompe à eau',750,1,1],['Climatiseur 1 CV',800,1,6],['Machine à laver',500,1,1],['Fer à souder / outillage',300,1,1],['Caméra de surveillance',10,1,24],['Box internet / routeur',15,1,24]];
+  var PRE_BIL=[['Éclairage LED (point)',12,10,100],['Prises 2P+T (circuit)',200,6,40],['Ventilateur',60,4,80],['Réfrigérateur',150,1,100],['Climatiseur 1,5 CV',1200,2,80],['Chauffe-eau',1500,1,60],['Fer à repasser',1000,1,30],['Cuisinière électrique',3000,1,50],['Pompe 0,75 kW',750,1,60],['Machine à laver',2000,1,40],['Portail motorisé',400,1,10]];
+  var CAT0=[
+    ['Solaire','Panneau solaire 315 Wc','u'],['Solaire','Panneau solaire 400 Wc','u'],['Solaire','Panneau solaire 550 Wc','u'],
+    ['Solaire','Batterie gel 12 V 200 Ah','u'],['Solaire','Batterie lithium 24 V 100 Ah','u'],['Solaire','Régulateur MPPT 30 A','u'],['Solaire','Régulateur MPPT 45 A','u'],['Solaire','Régulateur MPPT 60 A','u'],
+    ['Solaire','Onduleur 1000 VA','u'],['Solaire','Onduleur 3000 VA','u'],['Solaire','Onduleur 5000 VA','u'],['Solaire','Câble solaire 4 mm²','m'],['Solaire','Câble solaire 6 mm²','m'],
+    ['Solaire','Disjoncteur DC 32 A','u'],['Solaire','Disjoncteur DC 63 A','u'],['Solaire','Parafoudre DC','u'],['Solaire','Structure de fixation panneaux','lot'],['Solaire','Coffret de protection solaire','u'],
+    ['Câbles','Câble 1,5 mm²','m'],['Câbles','Câble 2,5 mm²','m'],['Câbles','Câble 4 mm²','m'],['Câbles','Câble 6 mm²','m'],['Câbles','Gaine ICTA','m'],
+    ['Protection','Disjoncteur 10 A','u'],['Protection','Disjoncteur 16 A','u'],['Protection','Disjoncteur 20 A','u'],['Protection','Disjoncteur 32 A','u'],['Protection','Interrupteur différentiel 40 A 30 mA','u'],['Protection','Tableau électrique','u'],['Protection','Piquet de terre','u'],
+    ['Appareillage','Point lumineux posé','u'],['Appareillage','Prise 16 A posée','u'],['Appareillage','Interrupteur posé','u'],['Appareillage','Ampoule LED 9 W','u'],
+    ['Main d\'œuvre','Main d\'œuvre','forfait'],['Main d\'œuvre','Journée d\'électricien','jour'],['Main d\'œuvre','Déplacement','forfait']
+  ];
+
+  var S={co:null,sol:[],bil:[],gen:[],docs:[],cur:null,f:{},clients:[],cat:null,pm:{},lastBackup:''};
+  var UI={client:null,hf:'all',catq:'',sheetCat:'Tous',saveWarned:false};
+  var KEYS=['sVsys','sSun','sWc','sVoc','sIsc','sVocMax','sEff','sBat','sAut','sAh','sVb','sSim','sLpv','sLbat','cMode','cU','cI','cP','cCos','cL','cDv','cMat','cTemp','bType','bU','bCos','bRes','sSys','sVmp','sImp','sKvoc','sTmin','sVmin','sIreg','rDev','rBat','rT','rAh','cLoad','vType','vU','vKnow','vVal','vCos','oU','oI','oR','eP','eH','eD','eC','pQ','pH','pEta','mType','mU','mP','mUnit','mEta','mCos','mStart','mL','mDv','mTemp','gType','gU','gCos','gFuel','gH','gPrice','gL','gTemp'];
+  var lastSol=null;
+
+  function defCo(){return {name:'Bigmax Elecprop',slogan:'Électricité bâtiment et énergie solaire',phone:'',email:'',addr:'N\'Djamena, Tchad',id:'',pay:'',logo:'',cur:'FCFA',tva:0,valid:30,cc:'235',prefDev:'DEV',prefFac:'FAC',cond:'Devis valable 30 jours. Acompte de 50 % à la commande, solde à la fin des travaux. Matériel garanti selon les conditions du fabricant.'}}
+  function defCat(){return CAT0.map(function(x){return {id:uid(),cat:x[0],name:x[1],unit:x[2],price:0}})}
+  function todayISO(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1,2)+'-'+pad(d.getDate(),2)}
+  function addDays(iso,n){var d=new Date(iso+'T00:00:00');if(isNaN(d))return '';d.setDate(d.getDate()+(+n||0));return d.getFullYear()+'-'+pad(d.getMonth()+1,2)+'-'+pad(d.getDate(),2)}
+  function dfr(iso){if(!iso)return '';var d=new Date(iso+'T00:00:00');return isNaN(d)?'':d.toLocaleDateString('fr-FR')}
+  function money(n){return fmt(Math.round(n))+' '+(S.co.cur||'FCFA')}
+  function getPath(o,p){return p.split('.').reduce(function(x,k){return x==null?'':x[k]},o)}
+  function setPath(o,p,v){var a=p.split('.');for(var i=0;i<a.length-1;i++){if(o[a[i]]==null)o[a[i]]={};o=o[a[i]]}o[a[a.length-1]]=v}
+  function clone(o){return JSON.parse(JSON.stringify(o))}
+
+  /* ---------- nombre en lettres (français) ---------- */
+  var U20=['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'];
+  var T10=['','','vingt','trente','quarante','cinquante','soixante'];
+  function b100(n,fin){
+    if(n<20)return U20[n];
+    var d=Math.floor(n/10),r=n%10;
+    if(d<=6)return T10[d]+(r===0?'':(r===1?' et un':'-'+U20[r]));
+    if(d===7)return 'soixante'+(r===1?' et onze':'-'+U20[10+r]);
+    if(d===8)return 'quatre-vingt'+(r===0?(fin?'s':''):'-'+U20[r]);
+    return 'quatre-vingt-'+U20[10+r];
+  }
+  function b1000(n,fin){
+    var c=Math.floor(n/100),r=n%100,s='';
+    if(c>0){s=(c===1?'cent':U20[c]+' cent');if(r===0&&c>1&&fin)s+='s'}
+    if(r>0)s+=(s?' ':'')+b100(r,fin);
+    return s;
+  }
+  function words(n){
+    n=Math.round(Math.abs(+n||0));
+    if(n===0)return 'zéro';
+    var parts=[],g=Math.floor(n/1e9),m=Math.floor(n/1e6)%1000,k=Math.floor(n/1000)%1000,u=n%1000;
+    if(g)parts.push(b1000(g,true)+' milliard'+(g>1?'s':''));
+    if(m)parts.push(b1000(m,true)+' million'+(m>1?'s':''));
+    if(k)parts.push(k===1?'mille':b1000(k,false)+' mille');
+    if(u)parts.push(b1000(u,true));
+    return parts.join(' ');
+  }
+  function curWords(n){
+    var c=(S.co.cur||'FCFA').trim(),one=Math.round(n)===1;
+    if(/^f\.?\s?cfa$/i.test(c))return one?'franc CFA':'francs CFA';
+    if(/^(xaf|xof)$/i.test(c))return one?'franc CFA':'francs CFA';
+    return c;
+  }
+  function amountWords(n){var w=words(n);return w.charAt(0).toUpperCase()+w.slice(1)+' '+curWords(n)}
+
+  /* ---------- documents ---------- */
+  function nextNum(type){
+    var pref=type==='DEVIS'?S.co.prefDev:S.co.prefFac,y=new Date().getFullYear(),head=pref+'-'+y+'-',max=0;
+    S.docs.forEach(function(d){if(d.type===type&&String(d.num).indexOf(head)===0){var n=parseInt(String(d.num).slice(head.length),10);if(n>max)max=n}});
+    return head+pad(max+1,3);
+  }
+  function newDoc(type,client){
+    var d={id:uid(),type:type,num:nextNum(type),date:todayISO(),valid:+S.co.valid||0,
+      status:STATUS[type][0],client:{id:'',name:'',tel:'',addr:''},obj:'',lines:[],rem:0,tva:+S.co.tva||0,acompte:0,paid:0,notes:S.co.cond||'',sig:'',sigAt:''};
+    if(client){d.client.id=client.id;d.client.name=client.name;d.client.tel=client.tel||'';d.client.addr=client.addr||''}
+    return d;
+  }
+  function isSaved(d){return S.docs.some(function(x){return x.id===d.id})}
+  function docTotals(d){
+    var sub=0;(d.lines||[]).forEach(function(r){sub+=(+r[1]||0)*(+r[3]||0)});
+    var disc=sub*(+d.rem||0)/100,ht=sub-disc,tv=ht*(+d.tva||0)/100,ttc=ht+tv,aco=ttc*(+d.acompte||0)/100;
+    var paid=d.type==='FACTURE'?(d.status==='Payée'?ttc:Math.min(+d.paid||0,ttc)):0;
+    return {sub:sub,disc:disc,ht:ht,tv:tv,ttc:ttc,aco:aco,reste:ttc-aco,paid:paid,due:ttc-paid};
+  }
+  function findDoc(id){for(var i=0;i<S.docs.length;i++){if(S.docs[i].id===id)return S.docs[i]}return null}
+
+  /* ---------- clients / catalogue ---------- */
+  function findClient(id){for(var i=0;i<S.clients.length;i++){if(S.clients[i].id===id)return S.clients[i]}return null}
+  function findClientByName(n){var k=norm(n);if(!k)return null;for(var i=0;i<S.clients.length;i++){if(norm(S.clients[i].name)===k)return S.clients[i]}return null}
+  function docsOf(c){return S.docs.filter(function(d){return (d.client.id&&d.client.id===c.id)||(!d.client.id&&norm(d.client.name)===norm(c.name))})}
+  function clientStats(c){
+    var s={quoted:0,billed:0,paid:0,due:0,n:0};
+    docsOf(c).forEach(function(d){var T=docTotals(d);s.n++;
+      if(d.type==='DEVIS'){if(d.status!=='Refusé')s.quoted+=T.ttc}
+      else{s.billed+=T.ttc;s.paid+=T.paid;s.due+=T.due}});
+    return s;
+  }
+  function ccPhone(tel){
+    var d=String(tel||'').replace(/[^\d+]/g,'');
+    if(!d)return '';
+    if(d.charAt(0)==='+')return d.slice(1);
+    d=d.replace(/^00/,'');
+    var cc=String(S.co.cc||'').replace(/\D/g,'');
+    if(cc&&d.indexOf(cc)!==0&&d.length<=9)d=cc+d;
+    return d;
+  }
+  function priceFor(name){
+    var k=norm(name);
+    for(var i=0;i<S.cat.length;i++){if(norm(S.cat[i].name)===k&&S.cat[i].price>0)return S.cat[i].price}
+    return S.pm[k]||0;
+  }
+  function rememberPrices(d){d.lines.forEach(function(r){var k=norm(r[0]),p=+r[3]||0;if(k&&p>0)S.pm[k]=p})}
+
+  /* ---------- stockage ---------- */
+  function load(){
+    var o=null;
+    try{var r=localStorage.getItem('bigmax-elecprop:v1');if(r)o=JSON.parse(r)}catch(e){}
+    if(o&&typeof o==='object')apply(o);
+    finish();
+  }
+  function finish(){
+    S.co=Object.assign(defCo(),S.co||{});
+    if(!S.sol.length)S.sol=[['Ampoules LED',9,6,5],['Ventilateur',60,2,8],['Télévision LED',80,1,5],['Réfrigérateur',150,1,10]];
+    if(!S.bil.length)S.bil=[['Éclairage LED (point)',12,10,100],['Prises 2P+T (circuit)',200,6,40],['Climatiseur 1,5 CV',1200,1,80]];
+    if(!S.gen||!S.gen.length)S.gen=[['Ampoules LED (lot)',60,1,1],['Ventilateur',60,2,2],['Réfrigérateur',150,1,3],['Télévision',80,1,1]];
+    if(!S.cat)S.cat=defCat();
+    if(!S.cur||!S.cur.lines)S.cur=newDoc('DEVIS');
+    if(!S.cur.client)S.cur.client={id:'',name:'',tel:'',addr:''};
+    S.docs.forEach(function(d){if(!d.client)d.client={id:'',name:'',tel:'',addr:''};if(d.paid==null)d.paid=0});
+    KEYS.forEach(function(k){if(S.f[k]!=null)$('#'+k).value=S.f[k]});
+  }
+  function apply(o){
+    S.co=o.co&&typeof o.co==='object'?o.co:null;
+    S.sol=Array.isArray(o.sol)?o.sol:[];S.bil=Array.isArray(o.bil)?o.bil:[];
+    S.docs=Array.isArray(o.docs)?o.docs:[];S.cur=o.cur&&typeof o.cur==='object'?o.cur:null;
+    S.f=o.f&&typeof o.f==='object'?o.f:{};
+    S.clients=Array.isArray(o.clients)?o.clients:[];
+    S.cat=Array.isArray(o.cat)?o.cat:null;
+    S.pm=o.pm&&typeof o.pm==='object'?o.pm:{};
+    S.gen=Array.isArray(o.gen)?o.gen:[];
+    S.lastBackup=typeof o.lastBackup==='string'?o.lastBackup:'';
+    if(S.co&&S.co.logo&&String(S.co.logo).indexOf('data:image/')!==0)S.co.logo='';
+  }
+  function save(){
+    KEYS.forEach(function(k){S.f[k]=$('#'+k).value});
+    try{localStorage.setItem('bigmax-elecprop:v1',JSON.stringify(S))}
+    catch(e){if(!UI.saveWarned){UI.saveWarned=true;toast('Stockage indisponible : sauvegardez vos données depuis Plus.')}}
+  }
+  var toastT=null;
+  function toast(text){
+    var el=$('#toast');
+    if(!el){el=document.createElement('div');el.id='toast';el.className='toast';document.body.appendChild(el)}
+    el.textContent=text;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true},2600);
+  }
+  function flash(sel,text){var el=$(sel);el.textContent=text;el.hidden=false;clearTimeout(el._t);el._t=setTimeout(function(){el.hidden=true},5000)}
+
+  /* ---------- calculs techniques ---------- */
+  function tempF(){return num('#cTemp')||0.91}
+  function secFor(I,L,V,dvPct,k,rho,fAmp){
+    var Sth=k*rho*L*I/(V*dvPct/100),Sv=firstGE(STD_S,Sth),Samp=null;
+    for(var i=0;i<STD_S.length;i++){if(AMP[STD_S[i]]*fAmp>=I){Samp=STD_S[i];break}}
+    return {Sth:Sth,Sv:Sv,Samp:Samp,S:(Sv&&Samp)?Math.max(Sv,Samp):null};
+  }
+  function calcSolar(){
+    var wh=0,w=0;
+    S.sol.forEach(function(r){var p=+r[1]||0,q=+r[2]||0,h=+r[3]||0;wh+=p*q*h;w+=p*q});
+    var V=num('#sVsys'),sun=num('#sSun'),Wc=num('#sWc'),eff=num('#sEff')/100,dod=num('#sBat')/100,
+        aut=num('#sAut'),Ah=num('#sAh'),Vb=num('#sVb'),sim=num('#sSim')/100,Voc=num('#sVoc'),VocMax=num('#sVocMax'),
+        Isc=num('#sIsc'),Lpv=num('#sLpv'),Lbat=num('#sLbat'),sys=$('#sSys').value,
+        Vmp=num('#sVmp')||Voc*0.81,Imp=num('#sImp')||(Vmp?Wc/Vmp:0),kv=num('#sKvoc')||-0.29,
+        Tmin=$('#sTmin').value===''?10:num('#sTmin'),Vmin=num('#sVmin'),Ireg=num('#sIreg');
+    $('#solWh').innerHTML=fmt(wh)+'<i>Wh</i>';
+    $('#solW').innerHTML=fmt(w)+'<i>W</i>';
+    var out=$('#solRes'),warn='';
+    lastSol=null;$('#solToDevis').hidden=true;$('#solShare').hidden=true;$('#solPdf').hidden=true;$('#solSchema').hidden=true;$('#solSchemaH').hidden=true;$('#solProt').innerHTML='';
+    if(!(wh>0&&sun>0&&Wc>0&&eff>0&&dod>0&&Ah>0&&Vb>0&&V>0)){out.innerHTML='<div class="fig wide"><small>Renseignez au moins un appareil et les paramètres</small></div>';$('#solWarn').innerHTML='';return}
+    var vocCold=Voc*(1+kv/100*(Tmin-25)),vmpHot=Vmp*0.848,Vchg=V*1.2;
+    var s=1,sMin=1,sMax=99,pwmRel=1,note='';
+    if(sys==='pwm'){
+      sMin=Math.max(1,Math.round(V*1.35/Vmp));
+      if(VocMax>0&&vocCold>0)sMax=Math.max(1,Math.floor(VocMax/vocCold));
+      s=sMin;pwmRel=Math.min(1,(V*1.1)/(s*Vmp));
+    }else{
+      var minV=Vmin>0?Vmin:(Vchg+5);
+      sMin=Math.max(1,Math.ceil(minV/vmpHot));
+      if(VocMax>0&&vocCold>0)sMax=Math.max(1,Math.floor(VocMax/vocCold));
+    }
+    var n0=Math.ceil(wh/(sun*eff*pwmRel)/Wc);
+    var conflict=sMin>sMax;
+    if(sys==='pwm'){s=conflict?sMax:sMin}
+    else if(conflict){s=sMax}
+    else{
+      var best=null;
+      for(var q=Math.min(sMax,Math.max(sMin,n0));q>=sMin;q--){var nn=Math.ceil(n0/q)*q;if(!best||nn<best.nn)best={s:q,nn:nn}}
+      s=best?best.s:sMin;
+    }
+    s=Math.max(1,s);
+    var n=Math.ceil(n0/s)*s,p=n/s,pvTot=n*Wc;
+    var batWh=wh*aut/dod,batAhNeeded=batWh/V;
+    var ser=Math.max(1,Math.round(V/Vb)),par=Math.max(1,Math.ceil(batAhNeeded/Ah)),nb=ser*par;
+    var peak=w*sim*1.25,inv=firstGE(INV,peak);
+    var ipv=sys==='pwm'?p*Isc*1.25:pvTot/V*1.25,reg=sys==='hyb'?null:firstGE(MPPT,ipv);
+    var fa=tempF();
+    var iPvCab=Isc>0?p*Isc*1.25:ipv, vPv=(Voc>0?s*Voc*0.8:V);
+    var cabPv=secFor(iPvCab,Lpv||10,vPv,3,2,0.0225,fa), brkPv=firstGE(BRK,iPvCab);
+    var pInv=inv||peak, iBat=pInv/(V*0.85);
+    var cabBat=secFor(iBat,Lbat||2,V,2,2,0.0225,fa), brkBat=firstGE(BRK,iBat*1.25);
+    var prodKwh=n*Wc*sun*eff*pwmRel/1000,consKwh=wh/1000;
+    var ahBank=par*Ah,iChg=pvTot*0.9*pwmRel/Vchg,cr=ahBank>0?iChg/ahBank:0,lead=num('#sBat')<80;
+    var vocStr=s*vocCold,vmpStr=s*vmpHot;
+    lastSol={n:n,Wc:Wc,nb:nb,Vb:Vb,Ah:Ah,par:par,ser:ser,reg:reg,V:V,inv:inv,sys:sys,s:s,p:p,pvS:cabPv.S,pvL:2*(Lpv||0),brkPv:brkPv,batS:cabBat.S,batL:2*(Lbat||0),brkBat:brkBat,vocStr:vocStr,prod:prodKwh,cons:consKwh,pvTot:pvTot,aut:aut,wh:wh,w:w,sun:sun,eff:eff,dod:dod,sim:sim,Voc:Voc,Vmp:Vmp,Isc:Isc,VocMax:VocMax,Tmin:Tmin,vocCold:vocCold,vmpStr:vmpStr,peak:peak,iChg:iChg,cr:cr,Lpv:Lpv,Lbat:Lbat,sysName:({mppt:'Régulateur MPPT + onduleur',pwm:'Régulateur PWM + onduleur',hyb:'Onduleur hybride (MPPT intégré)'})[sys],apps:S.sol.map(function(r){return r.slice()})};
+    $('#solToDevis').hidden=false;$('#solShare').hidden=false;$('#solPdf').hidden=false;$('#solSchema').innerHTML=schemaSvg(lastSol);$('#solSchema').hidden=false;$('#solSchemaH').hidden=false;
+    var sysName={mppt:'Régulateur MPPT + onduleur',pwm:'Régulateur PWM + onduleur',hyb:'Onduleur hybride (MPPT intégré)'}[sys];
+    out.innerHTML=
+      '<div class="fig wide"><small>Type de système</small><strong style="font-size:16px">'+sysName+'</strong></div>'+
+      '<div class="fig key"><small>Panneaux</small><strong>'+n+'<i>× '+fmt(Wc)+' Wc</i></strong><em>'+fmt(pvTot)+' Wc au total'+(sys==='pwm'&&pwmRel<0.98?' · rendement PWM '+fmt(pwmRel*100)+' %':'')+'</em></div>'+
+      '<div class="fig key"><small>Batteries</small><strong>'+nb+'<i>× '+fmt(Vb)+' V '+fmt(Ah)+' Ah</i></strong><em>'+ser+' en série × '+par+' en parallèle</em></div>'+
+      (sys==='hyb'?
+       '<div class="fig"><small>Onduleur hybride</small><strong>'+(inv?fmt(inv):'> '+fmt(INV[INV.length-1]))+'<i>VA</i></strong><em>pointe estimée : '+fmt(peak)+' W</em></div>'+
+       '<div class="fig"><small>Courant MPPT intégré</small><strong>'+fmt(ipv/1.25,0)+'<i>A mini</i></strong><em>à '+V+' V, prévoir ≥ '+fmt(ipv,0)+' A</em></div>':
+       '<div class="fig"><small>Régulateur '+(sys==='pwm'?'PWM':'MPPT')+'</small><strong>'+(reg?reg:'> '+MPPT[MPPT.length-1])+'<i>A à '+V+' V</i></strong><em>courant calculé : '+fmt(ipv,1)+' A</em></div>'+
+       '<div class="fig"><small>Onduleur</small><strong>'+(inv?fmt(inv):'> '+fmt(INV[INV.length-1]))+'<i>VA</i></strong><em>pointe estimée : '+fmt(peak)+' W</em></div>')+
+      '<div class="fig wide"><small>Branchement des panneaux</small><strong>'+s+'<i>en série ×</i> '+p+'<i>en parallèle</i></strong><em>Voc à froid ('+Tmin+' °C) : '+fmt(vocStr,0)+' V'+(VocMax>0?' pour '+fmt(VocMax)+' V max':'')+' · Vmp à chaud (65 °C) : '+fmt(vmpStr,0)+' V</em></div>'+
+      '<div class="fig"><small>Câble panneaux</small><strong>'+(cabPv.S?String(cabPv.S).replace('.',','):'–')+'<i>mm²</i></strong><em>'+fmt(iPvCab,1)+' A sur '+fmt(Lpv)+' m'+(brkPv?' · protection DC '+brkPv+' A':'')+'</em></div>'+
+      '<div class="fig"><small>Câble batteries</small><strong>'+(cabBat.S?String(cabBat.S).replace('.',','):'–')+'<i>mm²</i></strong><em>'+fmt(iBat)+' A sur '+fmt(Lbat,1)+' m'+(brkBat?' · fusible/disj. '+brkBat+' A':'')+'</em></div>'+
+      '<div class="fig"><small>Production estimée</small><strong>'+fmt(prodKwh,1)+'<i>kWh/jour</i></strong><em>consommation : '+fmt(consKwh,1)+' kWh/jour</em></div>'+
+      '<div class="fig"><small>Courant de charge max</small><strong>'+fmt(cr,2)+'<i>C</i></strong><em>'+fmt(iChg)+' A sur '+fmt(ahBank)+' Ah</em></div>'+
+      '<div class="fig wide"><small>Capacité de stockage utile</small><strong>'+fmt(batWh/1000,1)+'<i>kWh à prévoir ('+fmt(batAhNeeded)+' Ah à '+V+' V)</i></strong></div>';
+    if(conflict)warn+='<div class="warn bad">Ces panneaux ne sont pas compatibles avec le régulateur : '+(sys==='pwm'?'':'il faut au moins '+sMin+' panneaux en série pour dépasser la tension de démarrage, mais ')+'la tension à froid de '+sMin+' panneaux ('+fmt(sMin*vocCold,0)+' V) dépasse la limite de '+fmt(VocMax)+' V. Choisir un régulateur à tension plus haute ou un autre panneau.</div>';
+    else if(VocMax>0&&vocStr>VocMax)warn+='<div class="warn bad">Tension à froid trop haute ('+fmt(vocStr,0)+' V pour '+fmt(VocMax)+' V max). Risque de destruction du régulateur.</div>';
+    if(sys==='pwm'&&pwmRel<0.85)warn+='<div class="warn">Le régulateur PWM ne récupère que '+fmt(pwmRel*100)+' % de la puissance des panneaux. Un MPPT donnerait environ '+fmt((1/pwmRel-1)*100)+' % de production en plus avec les mêmes panneaux.</div>';
+    if(sys==='pwm'&&Vmp&&vmpHot*s<Vchg)warn+='<div class="warn">À chaud (65 °C), la tension des panneaux ('+fmt(vmpHot*s,1)+' V) est juste pour charger les batteries à '+fmt(Vchg,1)+' V. En été les batteries peuvent ne pas se remplir à fond : préférer un MPPT.</div>';
+    if(Ireg>0&&sys!=='pwm'&&pvTot/V*0.97>Ireg)warn+='<div class="warn">Le régulateur choisi ('+fmt(Ireg)+' A) limitera la charge : les panneaux dépassent sa capacité d\'environ '+fmt(pvTot-Ireg*V/0.97)+' Wc. Le surplus est perdu.</div>';
+    if(s*Voc<V*1.2&&Voc>0&&sys!=='pwm')warn+='<div class="warn">La tension série des panneaux ('+fmt(s*Voc,1)+' V) est basse pour un système '+V+' V. Vérifier la tension minimale de démarrage du régulateur.</div>';
+    if(sys!=='hyb'&&!reg)warn+='<div class="warn">Courant PV supérieur aux régulateurs standards. Prévoir plusieurs régulateurs ou une tension de système plus haute.</div>';
+    if(Vb<V&&V%Vb!==0)warn+='<div class="warn bad">La tension du système n\'est pas un multiple de la tension de batterie.</div>';
+    if(cabBat.S&&cabBat.S>=70)warn+='<div class="warn">Courant batterie élevé. Raccourcir le câble ou passer en 48 V.</div>';
+    if(lead&&cr>0.25)warn+='<div class="warn">Courant de charge élevé pour du plomb ('+fmt(cr,2)+' C). Limiter le courant de charge à 0,1–0,2 C dans le régulateur.</div>';
+    if(cr<0.05)warn+='<div class="warn">Les panneaux sont faibles par rapport aux batteries ('+fmt(cr,2)+' C) : les batteries risquent de ne jamais se remplir et de se sulfater.</div>';
+    if(prodKwh<consKwh*0.98)warn+='<div class="warn">La production estimée est inférieure à la consommation. Ajouter des panneaux.</div>';
+    $('#solWarn').innerHTML=warn;
+    var pr='<li>Sectionneur / disjoncteur DC côté panneaux : '+(brkPv||'–')+' A, calibré pour au moins '+fmt(vocStr*1.1,0)+' V DC.</li>';
+    if(p>=3)pr+='<li>Fusibles sur chaque rangée de panneaux (1,5 à 2,4 × Isc, soit '+fmt(Isc*1.5,0)+' à '+fmt(Isc*2.4,0)+' A), car '+p+' rangées sont en parallèle.</li>';
+    pr+='<li>Parafoudre DC type 2 (Ucpv au moins '+fmt(vocStr*1.1,0)+' V), le plus près possible du régulateur.</li>';
+    pr+='<li>Fusible ou disjoncteur batterie : '+(brkBat||'–')+' A, le plus près possible de la borne +.</li>';
+    pr+='<li>Mise à la terre : structure des panneaux, châssis de l\'onduleur et de l\'armoire, avec un piquet de terre (idéalement moins de 30 Ω).</li>';
+    pr+='<li>Câble solaire double isolation, résistant aux UV, et connecteurs MC4 de même marque.</li>';
+    pr+='<li>Orientation plein Sud, inclinaison de 10 à 15° pour N\'Djamena. Nettoyer les panneaux régulièrement (poussière, Harmattan).</li>';
+    $('#solProt').innerHTML='<h2>Protections et installation</h2><div class="card"><ul class="chk">'+pr+'</ul></div>';
+  }
+
+  function calcCable(){
+    var mode=$('#cMode').value,U=num('#cU'),Iin=num('#cI'),P=num('#cP'),cos=num('#cCos')||1,L=num('#cL'),dv=num('#cDv'),mat=$('#cMat').value,ft=tempF();
+    var out=$('#cabRes');
+    var I=Iin>0?Iin:(mode==='dc'?P/U:mode==='mono'?P/(U*cos):P/(Math.sqrt(3)*U*cos));
+    lastCab=null;$('#cToDevis').hidden=true;
+    if(!(U>0&&L>0&&I>0&&dv>0)){out.innerHTML='<div class="fig wide"><small>Renseignez la tension, la longueur et le courant ou la puissance</small></div>';$('#cabWarn').innerHTML='';return}
+    var k=mode==='tri'?Math.sqrt(3):2,rho=mat==='cu'?0.0225:0.036,f=(mat==='cu'?1:0.78)*ft;
+    var In=firstGE(BRK,I),Sth=k*rho*L*I/(U*dv/100),Sv=firstGE(STD_S,Sth),Samp=null;
+    if(In){for(var i=0;i<STD_S.length;i++){if(AMP[STD_S[i]]*f>=In){Samp=STD_S[i];break}}}
+    var S1=(Sv&&Samp)?Math.max(Sv,Samp):null,warn='';
+    var real=S1?k*rho*L*I/S1:0;
+    out.innerHTML=
+      '<div class="fig wide"><small>Courant de calcul</small><strong>'+fmt(I,1)+'<i>A</i></strong></div>'+
+      '<div class="fig key"><small>Section à retenir</small><strong>'+(S1?String(S1).replace('.',','):'–')+'<i>mm²</i></strong><em>'+(mat==='cu'?'cuivre':'aluminium')+'</em></div>'+
+      '<div class="fig key"><small>Disjoncteur</small><strong>'+(In?In:'–')+'<i>A</i></strong><em>calibre normalisé</em></div>'+
+      '<div class="fig"><small>Selon la chute de tension</small><strong>'+(Sv?String(Sv).replace('.',','):'–')+'<i>mm²</i></strong><em>théorique '+fmt(Sth,1)+' mm²</em></div>'+
+      '<div class="fig"><small>Selon le courant admissible</small><strong>'+(Samp?String(Samp).replace('.',','):'–')+'<i>mm²</i></strong><em>à '+(ft===1?'30':ft>0.9?'40':'50')+' °C</em></div>'+
+      (S1?'<div class="fig wide"><small>Chute de tension réelle</small><strong>'+fmt(real,2)+'<i>V soit '+fmt(real/U*100,2)+' %</i></strong></div>':'');
+    if(!S1)warn='<div class="warn bad">Aucune section normalisée ne convient. Réduire la longueur, augmenter la tension ou passer en triphasé.</div>';
+    else if(S1>=70)warn='<div class="warn">Section importante. Étudier une tension plus élevée ou deux câbles en parallèle.</div>';
+    lastCab=S1&&In?{S:S1,L:L,In:In,mat:mat,mode:mode}:null;$('#cToDevis').hidden=!lastCab;
+    if(S1&&In){var rc=firstGE(RCD,In);out.innerHTML+=fig('Différentiel 30 mA',rc||'–','A','calibre au moins égal au disjoncteur')+(mode==='dc'?'':'')}
+    $('#cabWarn').innerHTML=warn;
+  }
+
+  function calcBilan(){
+    var pi=0,pu=0;
+    S.bil.forEach(function(r){var w=+r[1]||0,q=+r[2]||0,ks=(+r[3]||0)/100;pi+=w*q;pu+=w*q*ks});
+    var type=$('#bType').value,U=num('#bU'),cos=num('#bCos')||1,res=num('#bRes')/100;
+    var out=$('#bilRes');
+    if(!(pi>0&&U>0)){out.innerHTML='<div class="fig wide"><small>Ajoutez des récepteurs</small></div>';return}
+    var pf=pu*(1+res),pa=pf/cos,I=type==='mono'?pa/U:pa/(Math.sqrt(3)*U);
+    var In=firstGE(BRK,I),S1=null;
+    if(In){for(var i=0;i<STD_S.length;i++){if(AMP[STD_S[i]]*tempF()>=In){S1=STD_S[i];break}}}
+    out.innerHTML=
+      '<div class="fig"><small>Puissance installée</small><strong>'+fmt(pi/1000,1)+'<i>kW</i></strong></div>'+
+      '<div class="fig"><small>Puissance foisonnée</small><strong>'+fmt(pu/1000,1)+'<i>kW</i></strong><em>avec '+fmt(res*100)+' % de réserve : '+fmt(pf/1000,1)+' kW</em></div>'+
+      '<div class="fig key"><small>Puissance à souscrire</small><strong>'+fmt(pa/1000,1)+'<i>kVA</i></strong></div>'+
+      '<div class="fig key"><small>Courant total</small><strong>'+fmt(I,1)+'<i>A</i></strong></div>'+
+      '<div class="fig"><small>Disjoncteur général</small><strong>'+(In?In:'–')+'<i>A '+(type==='mono'?'bipolaire':'tétrapolaire')+'</i></strong></div>'+
+      '<div class="fig"><small>Câble d\'alimentation</small><strong>'+(S1?String(S1).replace('.',','):'–')+'<i>mm² cuivre</i></strong><em>section minimale, à vérifier selon la longueur</em></div>';
+  }
+
+  /* ---------- texte du document (WhatsApp) ---------- */
+  function docText(d){
+    var c=S.co,T=docTotals(d),isD=d.type==='DEVIS';
+    var t=(isD?'DEVIS ':'FACTURE ')+d.num+' du '+dfr(d.date)+'\n'+c.name+'\n';
+    if(c.phone)t+='Tél : '+c.phone+'\n';
+    t+='\n';
+    if(d.client.name)t+='Client : '+d.client.name+'\n';
+    if(d.client.addr)t+='Chantier : '+d.client.addr+'\n';
+    if(d.obj)t+='Objet : '+d.obj+'\n';
+    t+='\n';
+    d.lines.forEach(function(r){var q=+r[1]||0,p=+r[3]||0;t+='- '+r[0]+' : '+fmt(q,2)+' '+r[2]+' × '+fmt(p)+' = '+money(q*p)+'\n'});
+    t+='\n';
+    if(T.disc>0)t+='Remise : − '+money(T.disc)+'\n';
+    if(+d.tva>0)t+='Montant HT : '+money(T.ht)+'\nTVA '+fmt(d.tva,1)+' % : '+money(T.tv)+'\n';
+    t+=(+d.tva>0?'TOTAL TTC : ':'TOTAL : ')+money(T.ttc)+'\n';
+    if(T.aco>0)t+='Acompte à la commande ('+fmt(d.acompte,1)+' %) : '+money(T.aco)+'\nReste à payer : '+money(T.reste)+'\n';
+    if(!isD&&T.paid>0)t+='Déjà réglé : '+money(T.paid)+'\nReste dû : '+money(T.due)+'\n';
+    if(isD&&d.valid>0)t+='\nValable jusqu\'au '+dfr(addDays(d.date,d.valid))+'\n';
+    if(c.pay)t+='\nPaiement :\n'+c.pay+'\n';
+    return t;
+  }
+
+  /* ---------- calculateurs v3 : convertisseur, moteur, groupe, circuit ---------- */
+  var RCD=[25,40,63,80,100];
+  var MOT=[0.18,0.25,0.37,0.55,0.75,1.1,1.5,2.2,3,4,5.5,7.5,11,15,18.5,22,30,37,45];
+  var GEN=[2,3,5,6.5,8,10,12,15,20,25,30,40,50,60,80,100,125,150,200,250];
+  var COSL={ecl:0.9,pri:0.9,clim:0.8,res:1,mot:0.8};
+  var PRE_GEN=[['Ampoule LED',9,1,1],['Ventilateur',60,1,2],['Télévision',80,1,1],['Réfrigérateur',150,1,3],['Congélateur',200,1,3],['Climatiseur 1 CV',800,1,3],['Pompe à eau 0,75 kW',750,1,3],['Machine à laver',500,1,2],['Fer à repasser',1000,1,1],['Ordinateur',65,1,1],['Meuleuse / perceuse',800,1,2],['Poste à souder',3000,1,2]];
+  var lastCab=null,lastMot=null;
+  function sx(v){return String(v).replace('.',',')}
+  function fig(label,val,unit,em,cls){return '<div class="fig'+(cls?' '+cls:'')+'"><small>'+label+'</small><strong>'+val+(unit?'<i>'+unit+'</i>':'')+'</strong>'+(em?'<em>'+em+'</em>':'')+'</div>'}
+
+  function calcConvert(){
+    var type=$('#vType').value,U=num('#vU'),know=$('#vKnow').value,val=num('#vVal'),cos=num('#vCos')||1,out=$('#vRes');
+    var dc=type==='dc',k=type==='tri'?Math.sqrt(3):1;if(dc)cos=1;
+    if(!(U>0&&val>0)){out.innerHTML='<div class="fig wide"><small>Renseignez la tension et une valeur</small></div>';return}
+    var P,I,Sa;
+    if(know==='A'){I=val;P=U*I*cos*k}
+    else if(know==='kVA'){Sa=val*1000;P=Sa*cos;I=Sa/(U*k)}
+    else{P=know==='W'?val:know==='kW'?val*1000:val*736;I=P/(U*cos*k)}
+    Sa=U*I*k;
+    out.innerHTML=
+      fig('Puissance active',fmt(P),'W','soit '+fmt(P/1000,2)+' kW','key')+
+      fig('Courant',fmt(I,2),'A','sous '+fmt(U)+' V','key')+
+      fig('Puissance apparente',fmt(Sa/1000,2),'kVA',dc?'':'cos φ = '+sx(cos))+
+      fig('En chevaux',fmt(P/736,2),'CV','1 CV = 736 W')+
+      (dc?'':fig('Puissance réactive',fmt(Math.sqrt(Math.max(0,Sa*Sa-P*P))/1000,2),'kvar'));
+  }
+  function calcOhm(){
+    var U=$('#oU').value.trim(),I=$('#oI').value.trim(),R=$('#oR').value.trim(),out=$('#oRes');
+    var u=parseNum(U),i=parseNum(I),r=parseNum(R),h=(U!==''?1:0)+(I!==''?1:0)+(R!==''?1:0);
+    if(h!==2){out.innerHTML='<div class="fig wide"><small>Remplissez deux champs, laissez le troisième vide</small></div>';return}
+    if(U==='')u=i*r;else if(I==='')i=r?u/r:0;else r=i?u/i:0;
+    out.innerHTML=fig('Tension',fmt(u,2),'V')+fig('Courant',fmt(i,3),'A')+fig('Résistance',fmt(r,2),'Ω')+fig('Puissance',fmt(u*i,1),'W');
+  }
+  function calcEnergie(){
+    var P=num('#eP'),H=num('#eH'),D=num('#eD'),C=num('#eC'),out=$('#eRes');
+    if(!(P>0&&H>0)){out.innerHTML='';return}
+    var d=P*H/1000,m=d*(D||30);
+    out.innerHTML=fig('Par jour',fmt(d,2),'kWh')+fig('Par mois',fmt(m,1),'kWh')+(C>0?fig('Coût par mois',fmt(m*C),'','à '+fmt(C)+' le kWh','key'):'');
+  }
+
+  function calcCircuitExtra(){
+    /* appelé à la fin de calcCable : mémorise le circuit pour le devis */
+  }
+
+  function motorI(){
+    var tri=$('#mType').value==='tri',U=num('#mU'),P=num('#mP'),cv=$('#mUnit').value==='CV',eta=num('#mEta')/100,cos=num('#mCos');
+    var Pout=cv?P*0.736:P;
+    if(!(U>0&&Pout>0&&eta>0&&cos>0))return null;
+    return {tri:tri,U:U,Pout:Pout,I:Pout*1000/(eta*cos*U*(tri?Math.sqrt(3):1))};
+  }
+  function calcPump(){
+    var Q=num('#pQ'),H=num('#pH'),eta=num('#pEta')/100,out=$('#pRes');
+    if(!(Q>0&&H>0&&eta>0)){out.innerHTML='<div class="fig wide"><small>Renseignez débit, hauteur et rendement</small></div>';return null}
+    var hyd=2.725*Q*H/1000,sh=hyd/eta,std=firstGE(MOT,sh*1.15);
+    out.innerHTML=fig('Puissance hydraulique',fmt(hyd,2),'kW')+fig('Puissance à l\'arbre',fmt(sh,2),'kW','avec rendement '+fmt(eta*100)+' %')+
+      fig('Moteur conseillé',std?sx(std):'> '+MOT[MOT.length-1],'kW','soit '+fmt((std||sh)/0.736,1)+' CV, marge de 15 %','key wide');
+    return std;
+  }
+  function calcMoteur(){
+    var m=motorI(),out=$('#mRes'),warn='',st=$('#mStart').value;
+    var ratio={direct:6,yd:2,soft:3,vfd:1.2}[st];
+    lastMot=null;$('#mToDevis').hidden=true;
+    if(!m){out.innerHTML='<div class="fig wide"><small>Renseignez la tension et la puissance du moteur</small></div>';$('#mWarn').innerHTML='';return}
+    var I=m.I,Id=I*ratio,brk=firstGE(BRK,I*1.25),L=num('#mL')||10,dv=num('#mDv')||3,ft=num('#mTemp')||0.91,k=m.tri?Math.sqrt(3):2;
+    var c=secFor(I*1.25,L,m.U,dv,k,0.0225,ft);
+    var rt1=Math.round(I*0.9*10)/10,rt2=Math.round(I*1.1*10)/10;
+    var kw=m.Pout,capRun=Math.round(kw*65/5)*5,capSt=Math.round(kw*65*3/10)*10;
+    var rcd=brk?firstGE(RCD,brk):null;
+    var vdStart=c.S?k*0.0225*L*Id/c.S:0;
+    lastMot={tri:m.tri,kw:kw,I:I,brk:brk,S:c.S,L:L,rt:sx(rt1)+'–'+sx(rt2),cap:m.tri?0:capRun,rcd:rcd};
+    $('#mToDevis').hidden=!(brk&&c.S);
+    out.innerHTML=
+      fig('Courant nominal',fmt(I,1),'A','à pleine charge','key')+
+      fig('Courant de démarrage',fmt(Id,0),'A','environ ×'+sx(ratio),'key')+
+      fig('Disjoncteur moteur',brk||'–','A','courbe D ou magnéto-thermique')+
+      fig('Relais thermique',sx(rt1)+' – '+sx(rt2),'A','réglage proche de '+fmt(I,1)+' A')+
+      fig('Câble',c.S?sx(c.S):'–','mm² cuivre',fmt(I*1.25,1)+' A sur '+fmt(L)+' m')+
+      fig('Contacteur',brk?firstGE([9,12,18,25,32,40,50,65,80,95],I)||'> 95':'–','A','catégorie AC3')+
+      (m.tri?'':fig('Condensateur permanent',fmt(capRun),'µF','démarrage : environ '+fmt(capSt)+' µF','wide'))+
+      (c.S?fig('Chute de tension au démarrage',fmt(vdStart/m.U*100,1),'%','calculée avec '+fmt(Id)+' A','wide'):'');
+    if(!c.S)warn+='<div class="warn bad">Aucune section normalisée ne convient. Réduire la longueur ou augmenter la tension.</div>';
+    if(c.S&&vdStart/m.U*100>10)warn+='<div class="warn">La chute de tension au démarrage dépasse 10 %. Le moteur risque de ne pas démarrer : augmenter la section ou utiliser un démarreur étoile-triangle.</div>';
+    if(!m.tri&&kw>2.2)warn+='<div class="warn">Au-delà de 2,2 kW, préférer un moteur triphasé si le réseau le permet.</div>';
+    if(st==='direct'&&kw>5.5)warn+='<div class="warn">Au-delà de 5,5 kW, le démarrage direct est déconseillé : étoile-triangle ou démarreur progressif.</div>';
+    $('#mWarn').innerHTML=warn;
+  }
+
+  function rowsGen(){
+    $('#grpRows').innerHTML=S.gen.map(function(r,i){
+      return '<div class="row" data-l="gen" data-i="'+i+'">'+
+      '<label class="name">Appareil<input data-f="0" type="text" value="'+esc(r[0])+'" autocomplete="off"></label>'+
+      '<label>Watts<input data-f="1" type="number" inputmode="decimal" value="'+r[1]+'"></label>'+
+      '<label>Quantité<input data-f="2" type="number" inputmode="decimal" value="'+r[2]+'"></label>'+
+      '<label>Démarrage ×<input data-f="3" type="number" inputmode="decimal" value="'+r[3]+'" step="0.5"></label>'+
+      '<button class="del ghost" data-del aria-label="Supprimer la ligne">✕</button></div>';
+    }).join('')||'<p class="note">Aucun appareil. Ajoutez-en un.</p>';
+    var sel=$('#grpPreset');
+    if(!sel.options.length)sel.innerHTML='<option value="">Appareil courant…</option>'+PRE_GEN.map(function(p,i){return '<option value="'+i+'">'+esc(p[0])+' ('+p[1]+' W)</option>'}).join('');
+  }
+  function calcGroupe(){
+    var out=$('#gRes'),warn='',run=0,add=0;
+    S.gen.forEach(function(r){var w=+r[1]||0,q=+r[2]||0,f=Math.max(1,+r[3]||1);run+=w*q;add=Math.max(add,w*(f-1))});
+    var tri=$('#gType').value==='tri',U=num('#gU'),cos=num('#gCos')||0.8,fuel=$('#gFuel').value,H=num('#gH'),price=num('#gPrice'),L=num('#gL')||10,ft=num('#gTemp')||0.91;
+    if(!(run>0&&U>0)){out.innerHTML='<div class="fig wide"><small>Ajoutez des appareils avec leur puissance</small></div>';$('#gWarn').innerHTML='';return}
+    var peak=run+add,kvaRun=run/(cos*0.8)/1000,kvaPeak=peak/(cos*1.5)/1000,need=Math.max(kvaRun,kvaPeak),kva=firstGE(GEN,need);
+    var pk=(kva||need)*cos*1000,load=Math.min(1,run/pk);
+    var sfc=fuel==='diesel'?(load<0.4?0.38:load<0.7?0.30:0.27):(load<0.4?0.55:load<0.7?0.45:0.40);
+    var lh=run/1000*sfc,Ig=(kva||need)*1000/(U*(tri?Math.sqrt(3):1)),brk=firstGE(BRK,Ig);
+    var c=secFor(Ig,L,U,3,tri?Math.sqrt(3):2,0.0225,ft);
+    out.innerHTML=
+      fig('Groupe à prévoir',kva?sx(kva):'> '+GEN[GEN.length-1],'kVA','soit environ '+fmt((kva||need)*cos,1)+' kW','key')+
+      fig('Charge permanente',fmt(run),'W','pointe au démarrage : '+fmt(peak)+' W','key')+
+      fig('Taux de charge',fmt(load*100),'%','idéal entre 50 et 80 %')+
+      fig(fuel==='diesel'?'Gasoil':'Essence',fmt(lh,1),'L/h','environ '+fmt(lh*H,1)+' L par jour')+
+      fig('Par mois',fmt(lh*H*30),'L','pour '+fmt(H,1)+' h par jour')+
+      (price>0?fig('Coût carburant par mois',fmt(lh*H*30*price),'','à '+fmt(price)+' le litre','key'):'')+
+      fig('Courant nominal',fmt(Ig,1),'A',tri?'triphasé':'monophasé')+
+      fig('Disjoncteur de sortie',brk||'–','A','à placer au départ du groupe')+
+      fig('Câble groupe → tableau',c.S?sx(c.S):'–','mm² cuivre','sur '+fmt(L)+' m, chute max 3 %','wide');
+    if(load<0.3)warn+='<div class="warn">Groupe très peu chargé (moins de 30 %) : consommation élevée par kWh et encrassement. Un groupe plus petit serait mieux adapté.</div>';
+    if(!kva)warn+='<div class="warn bad">Puissance au-delà des groupes standards du tableau. Étudier plusieurs groupes en parallèle.</div>';
+    if(add>run*0.5)warn+='<div class="warn">Un appareil au démarrage pèse lourd sur la charge totale. Démarrer les gros appareils un par un.</div>';
+    $('#gWarn').innerHTML=warn;
+  }
+
+  /* ---------- réglages du contrôleur / onduleur hybride ---------- */
+  var BATT={
+    open:{n:'Plomb ouvert',abs:14.4,flt:13.6,eq:15.0,lvd:11.1,rec:12.6,tc:-3,c:0.15,cr:'0,10 à 0,20 C',ab:'2 à 4 h',eqn:'1 fois par mois, 2 h'},
+    agm:{n:'AGM',abs:14.4,flt:13.6,eq:14.6,lvd:11.3,rec:12.6,tc:-3,c:0.15,cr:'0,10 à 0,25 C',ab:'2 à 3 h',eqn:'seulement si le fabricant l\'autorise'},
+    gel:{n:'Gel',abs:14.1,flt:13.6,eq:0,lvd:11.3,rec:12.6,tc:-3,c:0.12,cr:'0,10 à 0,15 C',ab:'2 à 3 h',eqn:'jamais'},
+    lfp:{n:'Lithium LiFePO4',abs:14.2,flt:13.5,eq:0,lvd:11.8,rec:13.0,tc:0,c:0.3,cr:'0,20 à 0,50 C',ab:'courte, jusqu\'à courant de queue 0,05 C',eqn:'jamais'}
+  };
+  var lastRegl='';
+  function kv(l,v,sub){return '<div class="kv"><span>'+l+(sub?'<small>'+sub+'</small>':'')+'</span><b>'+v+'</b></div>'}
+  function calcRegl(){
+    var dev=$('#rDev').value,bt=BATT[$('#rBat').value],V=num('#sVsys')||24,k=V/12,T=$('#rT').value===''?25:num('#rT');
+    var ah=num('#rAh')||(lastSol?lastSol.par*lastSol.Ah:0);
+    var corr=bt.tc*6*(T-25)/1000,lead=bt.tc<0;
+    var f=function(x){return fmt(x*k,1)+' V'};
+    var absT=bt.abs+(lead?corr:0),fltT=bt.flt+(lead?corr:0);
+    $('#rInfo').textContent='Système '+V+' V (modifiable dans Solaire)'+(ah?' · parc de '+fmt(ah)+' Ah':' · capacité du parc inconnue : renseignez-la pour calculer le courant de charge');
+    var h='',txt='Réglages '+({mppt:'régulateur MPPT',pwm:'régulateur PWM',hyb:'onduleur hybride'}[dev])+' - batterie '+bt.n+' - système '+V+' V\n';
+    function row(l,v,sub){h+=kv(l,v,sub);txt+='- '+l+' : '+v+'\n'}
+    row('Type de batterie',dev==='hyb'?'User (personnalisé)':(bt.n==='Lithium LiFePO4'?'Lithium ou User':bt.n),bt.n==='Lithium LiFePO4'?'si le réglage « lithium » n\'existe pas, choisir User':'');
+    row('Tension d\'absorption',f(absT),lead?'à '+T+' °C, compensation incluse':'');
+    row('Tension de floating',f(fltT),lead?'':'peut être désactivé si le BMS gère la charge');
+    row('Tension d\'égalisation',bt.eq?f(bt.eq+(lead?corr:0)):'Désactivée',bt.eq?bt.eqn:'Ne jamais égaliser');
+    row('Durée d\'absorption',bt.ab);
+    row('Coupure basse (batterie vide)',f(bt.lvd),'protège les batteries');
+    row('Reconnexion après coupure',f(bt.rec));
+    row('Compensation de température',lead?fmt(Math.abs(bt.tc)*6*k,0)+' mV/°C':'Désactivée',lead?'négative, '+bt.tc+' mV par °C et par élément':'');
+    if(ah)row('Courant de charge max conseillé',fmt(ah*bt.c)+' A','plage : '+bt.cr+' ('+fmt(ah*0.1)+' à '+fmt(ah*(lead?0.2:0.5))+' A)');
+    if(dev==='hyb'){
+      h+='<div class="kv hd"><span>Menus types (Axpert, Voltronic, MPP Solar et clones)</span><b></b></div>';txt+='Menus onduleur hybride :\n';
+      var lv=bt.lvd*k,full=Math.max(bt.abs-0.4,bt.flt)*k;
+      row('01 Priorité de sortie','SBU','solaire, puis batterie, puis réseau ; SUB si le réseau est fiable');
+      row('05 Type de batterie','USE (User)','nécessaire pour régler 26, 27 et 29');
+      row('26 Tension d\'absorption',f(absT));
+      row('27 Tension de floating',f(fltT));
+      row('29 Coupure basse DC',f(bt.lvd));
+      row('12 Retour sur réseau (SBU)',fmt(lv+1.0*k,1)+' V','batterie basse : l\'onduleur repasse sur le réseau');
+      row('13 Retour sur batterie (SBU)',fmt(full,1)+' V','batterie rechargée : retour sur le solaire');
+      row('16 Priorité de charge','CSO','solaire d\'abord ; OSO = solaire seul');
+      if(ah){row('02 Courant de charge max (total)',fmt(ah*bt.c)+' A');row('11 Courant de charge réseau',fmt(ah*bt.c*0.5)+' A','plus bas pour économiser le groupe ou le réseau')}
+    }
+    $('#rRes').innerHTML=h;lastRegl=txt;
+    var w='';
+    if(!lead)w+='<div class="warn">Lithium : régler selon la fiche du fabricant et le BMS. Désactiver l\'égalisation et la compensation de température.</div>';
+    if(lead&&T>=40)w+='<div class="warn">Batteries à '+T+' °C : la compensation baisse l\'absorption de '+fmt(Math.abs(corr)*k,2)+' V. Sans elle, les batteries chauffent et s\'usent vite.</div>';
+    if(dev==='pwm'&&$('#rBat').value==='gel')w+='<div class="warn">Sur Gel, vérifier que le mode égalisation du régulateur est bien désactivé.</div>';
+    if(dev==='pwm')w+='<div class="warn">Régulateur PWM : les panneaux doivent avoir une tension proche de celle des batteries. Voir le calcul dans l\'onglet Solaire.</div>';
+    $('#rWarn').innerHTML=w;
+  }
+  function shareText(title,text){
+    var SH=plug('Share');
+    if(SH&&SH.share)return SH.share({title:title,text:text,dialogTitle:'Partager'}).catch(function(){});
+    if(navigator.share)return navigator.share({title:title,text:text}).catch(function(){});
+    try{navigator.clipboard.writeText(text);toast('Texte copié')}catch(e){toast('Partage indisponible')}
+  }
+  function solSummary(){
+    var x=lastSol;if(!x)return '';
+    var nm={mppt:'Régulateur MPPT',pwm:'Régulateur PWM',hyb:'Onduleur hybride'}[x.sys];
+    var t='Installation solaire '+x.V+' V - '+nm+'\n';
+    t+='- Panneaux : '+x.n+' x '+fmt(x.Wc)+' Wc ('+fmt(x.pvTot)+' Wc), '+x.s+' en série x '+x.p+' en parallèle\n';
+    t+='- Batteries : '+x.nb+' x '+x.Vb+' V '+x.Ah+' Ah ('+x.ser+' série x '+x.par+' parallèle)\n';
+    if(x.reg)t+='- Régulateur : '+x.reg+' A\n';
+    if(x.inv)t+='- Onduleur : '+fmt(x.inv)+' VA\n';
+    if(x.pvS)t+='- Câble panneaux : '+sx(x.pvS)+' mm²'+(x.brkPv?', protection DC '+x.brkPv+' A':'')+'\n';
+    if(x.batS)t+='- Câble batteries : '+sx(x.batS)+' mm²'+(x.brkBat?', fusible '+x.brkBat+' A':'')+'\n';
+    t+='- Production estimée : '+fmt(x.prod,1)+' kWh/jour pour '+fmt(x.cons,1)+' kWh/jour consommés\n';
+    return t+'\nBigmax Elecprop';
+  }
+
+  /* ===== Schéma de l'installation solaire (géométrie commune SVG + PDF) ===== */
+  function schemaGeo(x){
+    var B=[],L=[],W=340,bx=20,bw=200,h=44,gap=38,y=10;
+    var pvLink=(x.pvS?sx(x.pvS)+' mm²':'')+(x.brkPv?' · DC '+x.brkPv+' A':'');
+    var batLink=(x.batS?sx(x.batS)+' mm²':'')+(x.brkBat?' · '+x.brkBat+' A':'');
+    function box(t,s,k){var b={x:bx,y:y,w:bw,h:h,t:t,s:s,k:k||0};B.push(b);y+=h+gap;return b}
+    var pv=box('Panneaux '+fmt(x.pvTot)+' Wc',x.n+' x '+fmt(x.Wc)+' Wc · '+x.s+' série x '+x.p+' parallèle',1);
+    var last,inv;
+    if(x.sys==='hyb'){
+      inv=box('Onduleur hybride'+(x.inv?' '+fmt(x.inv)+' VA':''),'MPPT intégré · '+x.V+' V');
+      L.push({a:pv,b:inv,t:pvLink});
+      var bat=box('Batteries '+x.V+' V',x.nb+' x '+x.Vb+' V '+x.Ah+' Ah · '+x.ser+' série x '+x.par+' parallèle');
+      L.push({a:inv,b:bat,t:batLink});
+    }else{
+      var rg=box((x.sys==='pwm'?'Régulateur PWM':'Régulateur MPPT')+(x.reg?' '+x.reg+' A':''),x.V+' V');
+      L.push({a:pv,b:rg,t:pvLink});
+      var bat2=box('Batteries '+x.V+' V',x.nb+' x '+x.Vb+' V '+x.Ah+' Ah · '+x.ser+' série x '+x.par+' parallèle');
+      L.push({a:rg,b:bat2,t:''});
+      inv=box('Onduleur'+(x.inv?' '+fmt(x.inv)+' VA':''),x.V+' V vers 230 V');
+      L.push({a:bat2,b:inv,t:batLink});
+    }
+    var ld={x:250,y:inv.y,w:80,h:h,t:'Charges',s:'230 V',k:2};B.push(ld);
+    L.push({a:inv,b:ld,t:'',side:1});
+    return {w:W,h:y-gap+10,boxes:B,links:L};
+  }
+  function schemaSvg(x){
+    var g=schemaGeo(x),o='<svg viewBox="0 0 '+g.w+' '+g.h+'" role="img" aria-label="Schéma de l\'installation solaire" style="width:100%;height:auto;display:block"><defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="currentColor"/></marker></defs><g style="color:var(--muted)">';
+    g.links.forEach(function(l){
+      var a=l.a,b=l.b;
+      if(l.side){o+='<line x1="'+(a.x+a.w)+'" y1="'+(a.y+a.h/2)+'" x2="'+b.x+'" y2="'+(b.y+b.h/2)+'" stroke="currentColor" stroke-width="1.6" marker-end="url(#ah)"/>';return}
+      var cx=a.x+a.w/2;
+      o+='<line x1="'+cx+'" y1="'+(a.y+a.h)+'" x2="'+cx+'" y2="'+b.y+'" stroke="currentColor" stroke-width="1.6" marker-end="url(#ah)"/>';
+      if(l.t)o+='<text x="'+(cx+8)+'" y="'+(a.y+a.h+23)+'" font-size="10" fill="currentColor">'+esc(l.t)+'</text>';
+    });
+    o+='</g>';
+    g.boxes.forEach(function(b){
+      var f=b.k===1?'var(--warm-soft)':b.k===2?'var(--ok-soft)':'var(--accent-soft)',s=b.k===1?'var(--warm)':b.k===2?'var(--ok)':'var(--accent)';
+      o+='<rect x="'+b.x+'" y="'+b.y+'" width="'+b.w+'" height="'+b.h+'" rx="9" fill="'+f+'" stroke="'+s+'" stroke-width="1.3"/>';
+      o+='<text x="'+(b.x+b.w/2)+'" y="'+(b.y+(b.s?18:27))+'" text-anchor="middle" font-size="'+(b.w<100?11:12)+'" font-weight="600" fill="var(--ink)">'+esc(b.t)+'</text>';
+      if(b.s)o+='<text x="'+(b.x+b.w/2)+'" y="'+(b.y+33)+'" text-anchor="middle" font-size="'+(b.w<100?9:9.5)+'" fill="var(--muted)">'+esc(b.s)+'</text>';
+    });
+    return o+'</svg>';
+  }
+
+  /* ================= PDF (généré sans bibliothèque) ================= */
+  var HW=('278 278 355 556 556 889 667 191 333 333 389 584 278 333 278 278 '+
+          '556 556 556 556 556 556 556 556 556 556 '+
+          '278 278 584 584 584 556 1015 '+
+          '667 667 722 722 667 611 778 722 278 500 667 556 833 722 778 667 778 722 667 611 722 667 944 667 667 611 '+
+          '278 278 278 469 556 333 '+
+          '556 556 500 556 556 278 556 556 222 222 500 222 833 556 556 556 556 333 500 278 556 500 722 500 500 500 '+
+          '334 260 334 584').split(' ').map(Number);
+  var SPECW={'’':222,'‘':222,'“':333,'”':333,'–':556,'—':1000,'…':1000,'×':584,'œ':944,'Œ':1000,'€':556,'°':400,'²':333,'·':278,'«':556,'»':556,' ':278,' ':278,'−':584};
+  var W1252={'€':128,'‚':130,'ƒ':131,'„':132,'…':133,'†':134,'‡':135,'ˆ':136,'‰':137,'Š':138,'‹':139,'Œ':140,'Ž':142,'‘':145,'’':146,'“':147,'”':148,'•':149,'–':150,'—':151,'˜':152,'™':153,'š':154,'›':155,'œ':156,'ž':158,'Ÿ':159};
+  function chW(ch){
+    var c=ch.charCodeAt(0);
+    if(c>=32&&c<=126)return HW[c-32];
+    if(SPECW[ch])return SPECW[ch];
+    var b=ch.normalize('NFD').charCodeAt(0);
+    if(b>=32&&b<=126)return HW[b-32];
+    return 556;
+  }
+  function tw(s,size,bold){var w=0;s=String(s);for(var i=0;i<s.length;i++)w+=chW(s[i]);return w*size/1000*(bold?1.07:1)}
+  function enc(s){
+    var o='',i,ch,c,b;s=String(s);
+    for(i=0;i<s.length;i++){
+      ch=s[i];c=ch.charCodeAt(0);
+      if(c===0x202f||c===0xa0||c===0x2009)c=32;else if(c===0x2212)c=45;
+      if(c<128||(c>=160&&c<256))b=c;else if(W1252[ch])b=W1252[ch];else b=63;
+      if(b===40||b===41||b===92)o+='\\'+String.fromCharCode(b);else o+=String.fromCharCode(b);
+    }
+    return o;
+  }
+  function col(hex){var n=parseInt(hex.slice(1),16);return [(n>>16)&255,(n>>8)&255,n&255].map(function(v){return (v/255).toFixed(3)}).join(' ')}
+  function wrap(s,maxW,size,bold){
+    var out=[];
+    String(s==null?'':s).split('\n').forEach(function(par){
+      var words=par.split(/\s+/).filter(Boolean),line='';
+      if(!words.length){out.push('');return}
+      words.forEach(function(w){
+        var t=line?line+' '+w:w;
+        if(tw(t,size,bold)<=maxW||!line){line=t}else{out.push(line);line=w}
+      });
+      out.push(line);
+    });
+    return out;
+  }
+  var A4W=595.28,A4H=841.89;
+  function PdfDoc(){this.pages=[];this.img=null;this.img2=null;this.img3=null;this.np()}
+  PdfDoc.prototype.np=function(){this.cur=[];this.pages.push(this.cur)};
+  PdfDoc.prototype.text=function(x,y,s,size,o){
+    o=o||{};var w=tw(s,size,o.bold);
+    if(o.align==='right')x-=w;else if(o.align==='center')x-=w/2;
+    this.cur.push('BT /'+(o.bold?'F2':'F1')+' '+size+' Tf '+col(o.color||'#161616')+' rg '+x.toFixed(2)+' '+(A4H-y).toFixed(2)+' Td ('+enc(s)+') Tj ET');
+  };
+  PdfDoc.prototype.rect=function(x,y,w,h,color){this.cur.push(col(color)+' rg '+x.toFixed(2)+' '+(A4H-y-h).toFixed(2)+' '+w.toFixed(2)+' '+h.toFixed(2)+' re f')};
+  PdfDoc.prototype.box=function(x,y,w,h,color){this.cur.push(col(color)+' RG 0.8 w '+x.toFixed(2)+' '+(A4H-y-h).toFixed(2)+' '+w.toFixed(2)+' '+h.toFixed(2)+' re S')};
+  PdfDoc.prototype.line=function(x1,y1,x2,y2,color,lw){this.cur.push(col(color)+' RG '+(lw||0.6)+' w '+x1.toFixed(2)+' '+(A4H-y1).toFixed(2)+' m '+x2.toFixed(2)+' '+(A4H-y2).toFixed(2)+' l S')};
+  PdfDoc.prototype.image=function(x,y,w,h,nm){this.cur.push('q '+w.toFixed(2)+' 0 0 '+h.toFixed(2)+' '+x.toFixed(2)+' '+(A4H-y-h).toFixed(2)+' cm /'+(nm||'Im1')+' Do Q')};
+  PdfDoc.prototype.build=function(title){
+    var objs=[],self=this;
+    function add(s){objs.push(s);return objs.length}
+    add('<< /Type /Catalog /Pages 2 0 R >>');
+    add('PAGES');
+    add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+    add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+    var xo='';
+    [['Im1',this.img],['Im2',this.img2],['Im3',this.img3]].forEach(function(e){
+      if(!e[1])return;
+      var id=add('<< /Type /XObject /Subtype /Image /Width '+e[1].w+' /Height '+e[1].h+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+e[1].bin.length+' >>\nstream\n'+e[1].bin+'\nendstream');
+      xo+=' /'+e[0]+' '+id+' 0 R';
+    });
+    var kids=[];
+    this.pages.forEach(function(p){
+      var content=p.join('\n');
+      var cid=add('<< /Length '+content.length+' >>\nstream\n'+content+'\nendstream');
+      var pid=add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+A4W+' '+A4H+'] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>'+(xo?' /XObject <<'+xo+' >>':'')+' >> /Contents '+cid+' 0 R >>');
+      kids.push(pid+' 0 R');
+    });
+    objs[1]='<< /Type /Pages /Kids ['+kids.join(' ')+'] /Count '+kids.length+' >>';
+    var infoId=add('<< /Title ('+enc(title||'Document')+') /Producer (Bigmax Elecprop) >>');
+    var out='%PDF-1.4\n%\xE2\xE3\xCF\xD3\n',offs=[];
+    objs.forEach(function(o,i){offs.push(out.length);out+=(i+1)+' 0 obj\n'+o+'\nendobj\n'});
+    var xr=out.length;
+    out+='xref\n0 '+(objs.length+1)+'\n0000000000 65535 f \n';
+    offs.forEach(function(o){out+=('0000000000'+o).slice(-10)+' 00000 n \n'});
+    out+='trailer\n<< /Size '+(objs.length+1)+' /Root 1 0 R /Info '+infoId+' 0 R >>\nstartxref\n'+xr+'\n%%EOF';
+    var u8=new Uint8Array(out.length);
+    for(var i=0;i<out.length;i++)u8[i]=out.charCodeAt(i)&255;
+    return u8;
+  };
+
+  function loadLogo(){return loadImg(S.co&&S.co.logo)}
+  function loadImg(src){
+    return new Promise(function(res){
+      if(!src){res(null);return}
+      var img=new Image();
+      img.onload=function(){
+        try{
+          var cv=document.createElement('canvas');cv.width=img.width;cv.height=img.height;
+          var cx=cv.getContext('2d');cx.fillStyle='#ffffff';cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(img,0,0);
+          var url=cv.toDataURL('image/jpeg',0.92);
+          res({bin:atob(url.split(',')[1]),w:cv.width,h:cv.height});
+        }catch(e){res(null)}
+      };
+      img.onerror=function(){res(null)};
+      img.src=src;
+    });
+  }
+
+  function makePdf(d){
+    return Promise.all([loadLogo(),loadImg(d.sig),loadImg(S.co&&S.co.sig)]).then(function(im){
+      var logo=im[0],sigC=im[1],sigE=im[2];
+      var c=S.co,T=docTotals(d),isD=d.type==='DEVIS',P=new PdfDoc();
+      var ML=40,MR=A4W-40,CW=MR-ML,ACC='#0b66b0',GR='#5b6b7a',LN='#d6dde4',BOT=A4H-70;
+      if(logo)P.img=logo;if(sigC)P.img2=sigC;if(sigE)P.img3=sigE;
+      var y=44,x0=ML;
+      if(logo){var s=Math.min(56/logo.w,56/logo.h),iw=logo.w*s,ih=logo.h*s;P.image(ML,y,iw,ih);x0=ML+iw+12}
+      P.text(x0,y+13,c.name,15,{bold:1});
+      var yy=y+27;
+      [c.slogan,c.addr,[c.phone?'Tél : '+c.phone:'',c.email].filter(Boolean).join('  ·  '),c.id].forEach(function(t){
+        if(t){P.text(x0,yy,t,9,{color:GR});yy+=11.5}
+      });
+      P.text(MR,y+20,isD?'DEVIS':'FACTURE',24,{bold:1,color:ACC,align:'right'});
+      P.text(MR,y+37,'N° '+d.num,10.5,{bold:1,align:'right'});
+      P.text(MR,y+50,'Date : '+dfr(d.date),9.5,{align:'right'});
+      if(d.valid>0)P.text(MR,y+62,(isD?'Valable jusqu\'au ':'Échéance : ')+dfr(addDays(d.date,d.valid)),9.5,{align:'right'});
+      y=Math.max(yy,y+72)+6;
+      P.line(ML,y,MR,y,ACC,1.6);
+      y+=14;
+
+      var cl=[],cn=d.client||{};
+      cl.push(['CLIENT',8,0,GR]);
+      cl.push([cn.name||'—',11.5,1,'#161616']);
+      if(cn.tel)cl.push(['Tél : '+cn.tel,9.5,0,'#161616']);
+      if(cn.addr)cl.push(['Chantier : '+cn.addr,9.5,0,'#161616']);
+      var bh=cl.length*13.5+10;
+      P.rect(ML,y,CW,bh,'#f2f5f8');
+      var by=y+15;
+      cl.forEach(function(r){P.text(ML+10,by,r[0],r[1],{bold:r[2],color:r[3]});by+=13.5});
+      y+=bh+10;
+      if(d.obj){
+        var ol=wrap(d.obj,CW-48,10);
+        P.text(ML,y+10,'Objet :',9.5,{bold:1,color:GR});
+        ol.forEach(function(t,i){P.text(ML+44,y+10+i*12.5,t,10)});
+        y+=ol.length*12.5+8;
+      }
+      y+=6;
+
+      var dW=CW-264,x1=ML+dW,xq=x1+48,xu=xq+44,xp=xu+82;
+      function head(){
+        P.rect(ML,y,CW,20,ACC);
+        P.text(ML+7,y+13.5,'Désignation',9,{bold:1,color:'#ffffff'});
+        P.text(xq-6,y+13.5,'Qté',9,{bold:1,color:'#ffffff',align:'right'});
+        P.text(xq+6,y+13.5,'Unité',9,{bold:1,color:'#ffffff'});
+        P.text(xp-6,y+13.5,'Prix unitaire',9,{bold:1,color:'#ffffff',align:'right'});
+        P.text(MR-7,y+13.5,'Total',9,{bold:1,color:'#ffffff',align:'right'});
+        y+=20;
+      }
+      head();
+      if(!d.lines.length){P.text(ML+7,y+15,'Aucune ligne',9.5,{color:GR});y+=24}
+      d.lines.forEach(function(r,i){
+        var q=+r[1]||0,p=+r[3]||0,ls=wrap(r[0]||'',dW-14,9.5),rh=Math.max(1,ls.length)*12+9;
+        if(y+rh>BOT){P.np();y=40;head()}
+        if(i%2)P.rect(ML,y,CW,rh,'#f5f8fb');
+        ls.forEach(function(t,k){P.text(ML+7,y+13+k*12,t,9.5)});
+        P.text(xq-6,y+13,fmt(q,2),9.5,{align:'right'});
+        P.text(xq+6,y+13,String(r[2]||''),9.5);
+        P.text(xp-6,y+13,fmt(p),9.5,{align:'right'});
+        P.text(MR-7,y+13,fmt(q*p),9.5,{align:'right'});
+        P.line(ML,y+rh,MR,y+rh,LN,0.5);
+        y+=rh;
+      });
+      y+=12;
+
+      var tl=[['Sous-total',money(T.sub)]];
+      if(T.disc>0)tl.push(['Remise '+fmt(d.rem,1)+' %','- '+money(T.disc)]);
+      if(+d.tva>0){tl.push(['Montant HT',money(T.ht)]);tl.push(['TVA '+fmt(d.tva,1)+' %',money(T.tv)])}
+      var th=tl.length*16+46+(T.aco>0?32:0)+(!isD&&T.paid>0?32:0);
+      if(y+th>BOT){P.np();y=40}
+      var tx=MR-240;
+      tl.forEach(function(r){P.text(tx,y+11,r[0],10);P.text(MR,y+11,r[1],10,{align:'right'});y+=16});
+      P.rect(tx-10,y+2,MR-tx+10,28,ACC);
+      P.text(tx,y+20,+d.tva>0?'TOTAL TTC':'TOTAL À PAYER',11.5,{bold:1,color:'#ffffff'});
+      P.text(MR-8,y+20,money(T.ttc),12.5,{bold:1,color:'#ffffff',align:'right'});
+      y+=40;
+      if(T.aco>0){
+        P.text(tx,y+11,'Acompte '+fmt(d.acompte,1)+' %',10);P.text(MR,y+11,money(T.aco),10,{align:'right'});y+=16;
+        P.text(tx,y+11,'Reste à payer',10,{bold:1});P.text(MR,y+11,money(T.reste),10,{bold:1,align:'right'});y+=16;
+      }
+      if(!isD&&T.paid>0){
+        P.text(tx,y+11,'Déjà réglé',10);P.text(MR,y+11,money(T.paid),10,{align:'right'});y+=16;
+        P.text(tx,y+11,'Reste dû',10,{bold:1});P.text(MR,y+11,money(T.due),10,{bold:1,align:'right'});y+=16;
+      }
+      y+=10;
+
+      var wl=wrap((isD?'Arrêté le présent devis à la somme de : ':'Arrêtée la présente facture à la somme de : ')+amountWords(T.ttc),CW,9.5);
+      if(y+wl.length*12.5>BOT){P.np();y=40}
+      wl.forEach(function(t,i){P.text(ML,y+10+i*12.5,t,9.5,{color:'#161616'})});
+      y+=wl.length*12.5+12;
+
+      function block(label,txt){
+        var ls=wrap(txt,CW,9);
+        if(y+14+Math.min(ls.length,3)*11.5>BOT){P.np();y=40}
+        P.text(ML,y+9,label,8.5,{bold:1,color:GR});y+=14;
+        ls.forEach(function(t){if(y+11.5>BOT){P.np();y=40}P.text(ML,y+8,t,9);y+=11.5});
+        y+=8;
+      }
+      if(d.notes)block('CONDITIONS',d.notes);
+      if(c.pay)block('MOYENS DE PAIEMENT',c.pay);
+
+      if(y+84>BOT){P.np();y=40}
+      y+=6;
+      var bw=(CW-16)/2;
+      P.box(ML,y,bw,74,'#c5ced7');P.box(ML+bw+16,y,bw,74,'#c5ced7');
+      P.text(ML+8,y+13,isD?'Bon pour accord, date et signature du client':'Signature du client',8.5,{color:GR});
+      P.text(ML+bw+24,y+13,'Cachet et signature de l\'entreprise',8.5,{color:GR});
+      function fitImg(im,nm,bx){
+        if(!im)return;
+        var mw=bw-16,mh=46,k=Math.min(mw/im.w,mh/im.h),w=im.w*k,h=im.h*k;
+        P.image(bx+(bw-w)/2,y+20+(mh-h)/2,w,h,nm);
+      }
+      fitImg(sigC,'Im2',ML);fitImg(sigE,'Im3',ML+bw+16);
+      if(sigC&&d.sigAt)P.text(ML+8,y+70,'Signé électroniquement le '+new Date(d.sigAt).toLocaleDateString('fr-FR'),7.5,{color:GR});
+
+      var n=P.pages.length;
+      P.pages.forEach(function(pg,i){
+        P.cur=pg;
+        P.rect(0,0,A4W,9,ACC);P.rect(0,9,A4W,2.5,'#0a8f8f');
+        P.line(ML,A4H-48,MR,A4H-48,LN,0.5);
+        P.text(ML,A4H-36,[c.name,c.id,c.phone].filter(Boolean).join('  ·  '),8,{color:GR});
+        P.text(MR,A4H-36,'Page '+(i+1)+' / '+n,8,{color:GR,align:'right'});
+      });
+      return P.build((isD?'Devis ':'Facture ')+d.num);
+    });
+  }
+
+  /* ---------- partage de fichiers (Android et navigateur) ---------- */
+  var plugCache={};
+  function plug(n){
+    if(plugCache[n])return plugCache[n];
+    var C=window.Capacitor;if(!C)return null;
+    var p=C.Plugins&&C.Plugins[n];
+    if(!p&&C.registerPlugin){try{p=C.registerPlugin(n)}catch(e){p=null}}
+    if(p)plugCache[n]=p;
+    return p||null;
+  }
+  function b64(u8){var s='',ch=0x8000;for(var i=0;i<u8.length;i+=ch)s+=String.fromCharCode.apply(null,u8.subarray(i,i+ch));return btoa(s)}
+  function shareFile(name,mime,u8,title,text){
+    var FS=plug('Filesystem'),SH=plug('Share');
+    if(NATIVE){
+      if(!(FS&&SH))return Promise.resolve('unavailable');
+      return FS.writeFile({path:name,data:b64(u8),directory:'CACHE'}).then(function(r){
+        return SH.share({title:title,text:text||'',url:r.uri,dialogTitle:'Envoyer ou enregistrer'}).then(function(){return 'shared'},function(){return 'cancel'});
+      }).catch(function(){return 'unavailable'});
+    }
+    var file=new File([u8],name,{type:mime});
+    function dl(){var a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;document.body.appendChild(a);a.click();a.remove();return 'download'}
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      return navigator.share({files:[file],title:title,text:text||''}).then(function(){return 'shared'},function(e){return e&&e.name==='AbortError'?'cancel':dl()});
+    }
+    return Promise.resolve(dl());
+  }
+  function sharePdf(d){
+    toast('Création du PDF…');
+    return makePdf(d).then(function(u8){
+      var name=String(d.num).replace(/[^\w.-]+/g,'_')+'.pdf';
+      return shareFile(name,'application/pdf',u8,(d.type==='DEVIS'?'Devis ':'Facture ')+d.num,(d.type==='DEVIS'?'Devis ':'Facture ')+d.num+' - '+S.co.name);
+    }).then(function(r){
+      if(r==='unavailable')toast('Partage indisponible dans cette version de l\'application.');
+      else if(r==='download')toast('PDF téléchargé.');
+      return r;
+    }).catch(function(){toast('Impossible de créer le PDF.')});
+  }
+
+  /* ===== Note de calcul solaire (PDF) ===== */
+  function makeSolPdf(){
+    var x=lastSol;if(!x)return Promise.resolve(null);
+    return loadLogo().then(function(logo){
+      var c=S.co,P=new PdfDoc(),ML=40,MR=A4W-40,CW=MR-ML,ACC='#0b66b0',GR='#5b6b7a',LN='#d6dde4',BOT=A4H-60;
+      if(logo)P.img=logo;
+      var y=40,x0=ML;
+      if(logo){var s=Math.min(50/logo.w,50/logo.h),iw=logo.w*s,ih=logo.h*s;P.image(ML,y,iw,ih);x0=ML+iw+12}
+      P.text(x0,y+13,c.name||'Bigmax Elecprop',15,{bold:1});
+      var yy=y+27;
+      [c.addr,[c.phone?'Tél : '+c.phone:'',c.email].filter(Boolean).join('  ·  ')].forEach(function(t){if(t){P.text(x0,yy,t,9,{color:GR});yy+=11.5}});
+      P.text(MR,y+20,'NOTE DE CALCUL SOLAIRE',17,{bold:1,color:ACC,align:'right'});
+      P.text(MR,y+36,'Date : '+new Date().toLocaleDateString('fr-FR'),9.5,{align:'right'});
+      y=Math.max(yy,y+52)+10;
+      function chk(){if(y>BOT){P.np();y=50}}
+      function head(t){chk();y+=6;P.rect(ML,y,CW,18,'#e8f1fa');P.text(ML+8,y+13,t,10.5,{bold:1,color:ACC});y+=26}
+      function row(a,b,bold){
+        var L=wrap(b,CW*0.58,9.5,bold);chk();
+        P.text(ML+6,y,a,9.5,{color:GR});
+        L.forEach(function(l,i){P.text(MR-6,y+i*12,l,9.5,{bold:bold,align:'right'})});
+        y+=Math.max(1,L.length)*12;P.line(ML,y-8,MR,y-8,LN,0.4);y+=3;
+      }
+      function para(t){wrap(t,CW-12,9,0).forEach(function(l){chk();P.text(ML+6,y,l,9,{color:GR});y+=11.5});y+=2}
+      head('1. Besoins en énergie');
+      var tot=0;
+      (x.apps||[]).forEach(function(r){
+        var p=+r[1]||0,q=+r[2]||0,h=+r[3]||0;if(!(p*q*h))return;
+        row(r[0]+' ('+p+' W x '+q+' x '+h+' h)',fmt(p*q*h)+' Wh');tot+=p*q*h;
+      });
+      row('Énergie par jour',fmt(x.wh)+' Wh',1);
+      row('Puissance cumulée / pointe estimée',fmt(x.w)+' W / '+fmt(x.peak)+' W');
+      head('2. Hypothèses');
+      row('Type de système',x.sysName);
+      row('Tension du système',x.V+' V');
+      row('Heures de soleil équivalentes',fmt(x.sun,1)+' h/jour');
+      row('Rendement global',fmt(x.eff*100)+' %');
+      row('Profondeur de décharge',fmt(x.dod*100)+' %');
+      row('Autonomie voulue',x.aut+' jour(s)');
+      head('3. Dimensionnement');
+      row('Panneaux',x.n+' x '+fmt(x.Wc)+' Wc = '+fmt(x.pvTot)+' Wc',1);
+      row('Câblage des panneaux',x.s+' en série x '+x.p+' en parallèle');
+      row('Batteries',x.nb+' x '+x.Vb+' V '+x.Ah+' Ah ('+x.ser+' série x '+x.par+' parallèle)',1);
+      if(x.reg)row('Régulateur MPPT',x.reg+' A');
+      if(x.inv)row('Onduleur',fmt(x.inv)+' VA');
+      row('Production estimée',fmt(x.prod,1)+' kWh/jour (consommation '+fmt(x.cons,1)+' kWh/jour)');
+      head('4. Vérifications électriques');
+      if(x.Voc>0)row('Tension à vide d\'une chaîne (à '+x.Tmin+' °C)',fmt(x.vocStr,1)+' V'+(x.VocMax>0?' (limite '+fmt(x.VocMax)+' V)':''));
+      if(x.vmpStr>0&&x.sys!=='pwm')row('Tension de travail d\'une chaîne (à chaud)',fmt(x.vmpStr,1)+' V');
+      row('Courant de charge estimé',fmt(x.iChg,1)+' A (C = '+fmt(x.cr,2)+')');
+      head('5. Câbles et protections');
+      if(x.pvS)row('Câble panneaux ('+fmt(x.pvL)+' m aller-retour)',sx(x.pvS)+' mm²'+(x.brkPv?' · protection DC '+x.brkPv+' A':''));
+      if(x.batS)row('Câble batteries ('+fmt(x.batL)+' m aller-retour)',sx(x.batS)+' mm²'+(x.brkBat?' · fusible '+x.brkBat+' A':''));
+      row('Protections recommandées','Parafoudre DC, disjoncteur/fusible DC, mise à la terre');
+      head('6. Schéma de l\'installation');
+      (function(){
+        var g=schemaGeo(x),sc=0.82,ox=ML+(CW-g.w*sc)/2;
+        if(y+g.h*sc>BOT){P.np();y=50}
+        var oy=y;
+        function X(v){return ox+v*sc}function Y(v){return oy+v*sc}
+        g.links.forEach(function(l){
+          var a=l.a,b=l.b,x1,y1,x2,y2;
+          if(l.side){x1=a.x+a.w;y1=a.y+a.h/2;x2=b.x;y2=y1;P.line(X(x1),Y(y1),X(x2),Y(y2),GR,1.2);P.line(X(x2),Y(y2),X(x2)-4,Y(y2)-3,GR,1.2);P.line(X(x2),Y(y2),X(x2)-4,Y(y2)+3,GR,1.2);return}
+          x1=a.x+a.w/2;y1=a.y+a.h;y2=b.y;
+          P.line(X(x1),Y(y1),X(x1),Y(y2),GR,1.2);P.line(X(x1),Y(y2),X(x1)-3,Y(y2)-5,GR,1.2);P.line(X(x1),Y(y2),X(x1)+3,Y(y2)-5,GR,1.2);
+          if(l.t)P.text(X(x1)+8,Y(y1)+(y2-y1)/2+3,l.t,8.5,{color:GR});
+        });
+        g.boxes.forEach(function(b){
+          var f=b.k===1?'#fbefd9':b.k===2?'#e1f4ea':'#e1eef9',st=b.k===1?'#b36b00':b.k===2?'#1a7f4b':ACC;
+          P.rect(X(b.x),Y(b.y),b.w*sc,b.h*sc,f);P.box(X(b.x),Y(b.y),b.w*sc,b.h*sc,st);
+          P.text(X(b.x+b.w/2),Y(b.y)+(b.s?15:24),b.t,b.w<100?8.5:9.5,{bold:1,align:'center'});
+          if(b.s)P.text(X(b.x+b.w/2),Y(b.y)+28,b.s,b.w<100?7:7.5,{color:GR,align:'center'});
+        });
+        y=oy+g.h*sc+4;
+      })();
+      y+=8;
+      para('Note : calcul de dimensionnement indicatif basé sur les hypothèses ci-dessus. Les valeurs réelles dépendent des fiches techniques du matériel installé et des conditions du site. À vérifier avant installation.');
+      var n=P.pages.length;
+      P.pages.forEach(function(pg,i){P.cur=pg;P.text(A4W/2,A4H-30,(c.name||'Bigmax Elecprop')+' · Note de calcul solaire · page '+(i+1)+'/'+n,8,{color:GR,align:'center'})});
+      return P.build('Note de calcul solaire');
+    });
+  }
+
+  /* ================= INTERFACE ================= */
+  var CUR='accueil',SUB='edit';
+
+  function fillSel(sel,list,label){
+    var h='<option value="">'+label+'</option>';
+    list.forEach(function(p,i){h+='<option value="'+i+'">'+esc(p[0])+'</option>'});
+    $(sel).innerHTML=h;
+  }
+  function rowsSol(){
+    $('#solRows').innerHTML=S.sol.map(function(r,i){
+      return '<div class="row" data-l="sol" data-i="'+i+'">'+
+      '<label class="name">Appareil<input data-f="0" type="text" value="'+esc(r[0])+'" autocomplete="off"></label>'+
+      '<label>Watts<input data-f="1" type="number" inputmode="decimal" value="'+r[1]+'"></label>'+
+      '<label>Quantité<input data-f="2" type="number" inputmode="decimal" value="'+r[2]+'"></label>'+
+      '<label>Heures/jour<input data-f="3" type="number" inputmode="decimal" value="'+r[3]+'" step="0.5"></label>'+
+      '<button class="del ghost" data-del aria-label="Supprimer la ligne">✕</button></div>';
+    }).join('')||'<p class="note">Aucun appareil. Ajoutez-en un.</p>';
+  }
+  function rowsBil(){
+    $('#bilRows').innerHTML=S.bil.map(function(r,i){
+      return '<div class="row" data-l="bil" data-i="'+i+'">'+
+      '<label class="name">Récepteur<input data-f="0" type="text" value="'+esc(r[0])+'" autocomplete="off"></label>'+
+      '<label>Watts<input data-f="1" type="number" inputmode="decimal" value="'+r[1]+'"></label>'+
+      '<label>Quantité<input data-f="2" type="number" inputmode="decimal" value="'+r[2]+'"></label>'+
+      '<label>Simultané %<input data-f="3" type="number" inputmode="decimal" value="'+r[3]+'"></label>'+
+      '<button class="del ghost" data-del aria-label="Supprimer la ligne">✕</button></div>';
+    }).join('')||'<p class="note">Aucun récepteur. Ajoutez-en un.</p>';
+  }
+  function rowsDev(){
+    var L=S.cur.lines;
+    $('#devRows').innerHTML=L.map(function(r,i){
+      var us=UNITS.indexOf(r[2])<0?UNITS.concat([r[2]]):UNITS;
+      var opts=us.map(function(u){return '<option'+(u===r[2]?' selected':'')+'>'+esc(u)+'</option>'}).join('');
+      return '<div class="row" data-l="dev" data-i="'+i+'">'+
+      '<label class="name">Désignation<input data-f="0" type="text" value="'+esc(r[0])+'" autocomplete="off"></label>'+
+      '<label>Quantité<input data-f="1" type="number" inputmode="decimal" value="'+r[1]+'"></label>'+
+      '<label>Unité<select data-f="2">'+opts+'</select></label>'+
+      '<label>Prix unitaire<input data-f="3" type="number" inputmode="decimal" value="'+(r[3]||'')+'" placeholder="0"></label>'+
+      '<button class="del ghost" data-del aria-label="Supprimer la ligne">✕</button>'+
+      '<span class="linetotal"></span>'+
+      '<span class="mv"><button data-mv="up" aria-label="Monter">↑</button><button data-mv="dn" aria-label="Descendre">↓</button><button data-mv="dup" aria-label="Dupliquer">⧉</button></span></div>';
+    }).join('')||'<p class="empty">Aucun article. Touchez « Du catalogue » pour en ajouter.</p>';
+  }
+
+  /* ---------- devis ---------- */
+  function syncPay(d){
+    if(d.type!=='FACTURE')return;
+    var T=docTotals({type:d.type,lines:d.lines,rem:d.rem,tva:d.tva,acompte:d.acompte,paid:d.paid,status:'x'});
+    if(d.status==='Payée'){d.paid=T.ttc;return}
+    if(T.ttc>0&&(+d.paid||0)>=T.ttc-0.5){d.status='Payée';d.paid=T.ttc}
+    else if((+d.paid||0)>0&&d.status==='Émise')d.status='Partiellement payée';
+    else if(!(+d.paid>0)&&d.status==='Partiellement payée')d.status='Émise';
+  }
+  function updateBar(){
+    var show=(CUR==='devis'&&SUB==='edit');
+    $('#bar').hidden=!show;
+    if(!show)return;
+    var T=docTotals(S.cur);
+    $('#barLbl').textContent=(S.cur.type==='DEVIS'?'Devis ':'Facture ')+S.cur.num;
+    $('#barTot').textContent=money(T.ttc);
+  }
+  function calcDevis(){
+    var d=S.cur,T=docTotals(d);
+    $$('#devRows .row').forEach(function(row,i){
+      var r=d.lines[i];if(!r)return;
+      row.querySelector('.linetotal').textContent='Total ligne : '+money((+r[1]||0)*(+r[3]||0));
+    });
+    var h='<div class="sum"><span>Sous-total</span><span>'+money(T.sub)+'</span></div>';
+    if(T.disc>0)h+='<div class="sum"><span>Remise '+fmt(d.rem,1)+' %</span><span>− '+money(T.disc)+'</span></div>';
+    if(+d.tva>0)h+='<div class="sum"><span>Montant HT</span><span>'+money(T.ht)+'</span></div><div class="sum"><span>TVA '+fmt(d.tva,1)+' %</span><span>'+money(T.tv)+'</span></div>';
+    h+='<div class="sum total"><span>'+(+d.tva>0?'Total TTC':'Total à payer')+'</span><span>'+money(T.ttc)+'</span></div>';
+    if(T.aco>0)h+='<div class="sum"><span>Acompte '+fmt(d.acompte,1)+' %</span><span>'+money(T.aco)+'</span></div><div class="sum"><span>Reste à payer</span><span>'+money(T.reste)+'</span></div>';
+    if(d.type==='FACTURE'&&T.paid>0)h+='<div class="sum"><span>Déjà encaissé</span><span>'+money(T.paid)+'</span></div><div class="sum"><span><b>Reste dû</b></span><span><b>'+money(T.due)+'</b></span></div>';
+    $('#devTot').innerHTML=h;
+    var ph=ccPhone(d.client&&d.client.tel);
+    $('#devWa').href='https://wa.me/'+ph+'?text='+encodeURIComponent(docText(d));
+    updateBar();
+  }
+  function fillPick(){
+    var d=S.cur,list=S.clients.slice().sort(function(a,b){return norm(a.name)<norm(b.name)?-1:1});
+    $('#dcPick').innerHTML='<option value="">'+(list.length?'— Saisir un nouveau client —':'Aucun client enregistré')+'</option>'+
+      list.map(function(c){return '<option value="'+esc(c.id)+'"'+(c.id===d.client.id?' selected':'')+'>'+esc(c.name)+'</option>'}).join('');
+  }
+  function fillEditor(){
+    var d=S.cur;sigUI();
+    $('#dStatus').innerHTML=STATUS[d.type].map(function(s){return '<option>'+s+'</option>'}).join('');
+    if(STATUS[d.type].indexOf(d.status)<0)d.status=STATUS[d.type][0];
+    $('#tyDevis').setAttribute('aria-pressed',d.type==='DEVIS');$('#tyFact').setAttribute('aria-pressed',d.type==='FACTURE');
+    $$('[data-doc]').forEach(function(el){
+      var v=getPath(d,el.dataset.doc);
+      el.value=(el.type==='number'&&(v===0||v==null))?(el.dataset.doc==='valid'?(v||0):''):v;
+    });
+    $('#dValidLbl').textContent=d.type==='DEVIS'?'Validité du devis (jours)':'Délai de paiement (jours)';
+    $('#paidBox').hidden=(d.type!=='FACTURE');
+    fillPick();rowsDev();calcDevis();
+  }
+  function upsertClient(d){
+    var n=String(d.client.name||'').trim();if(!n)return;
+    var c=(d.client.id&&findClient(d.client.id))||findClientByName(n);
+    if(!c){c={id:uid(),name:n,tel:d.client.tel||'',addr:'',note:''};S.clients.push(c)}
+    else if(!c.tel&&d.client.tel)c.tel=d.client.tel;
+    d.client.id=c.id;
+  }
+  function saveDoc(){
+    syncPay(S.cur);upsertClient(S.cur);
+    var d=clone(S.cur),i=-1;
+    S.docs.forEach(function(x,k){if(x.id===d.id)i=k});
+    if(i>=0)S.docs[i]=d;else S.docs.unshift(d);
+    rememberPrices(d);
+    save();fillEditor();
+    toast((d.type==='DEVIS'?'Devis ':'Facture ')+d.num+' enregistré'+(d.type==='DEVIS'?'':'e'));
+  }
+  function openEditor(d){S.cur=clone(d);fillEditor();setSub('edit');save();if(CUR!=='devis')location.hash='#devis'}
+  function setSub(v){
+    SUB=v;
+    $('#subEdit').hidden=(v!=='edit');$('#subHist').hidden=(v!=='hist');
+    $('#subEditBtn').setAttribute('aria-pressed',v==='edit');$('#subHistBtn').setAttribute('aria-pressed',v==='hist');
+    if(v==='hist')histRender();
+    updateBar();window.scrollTo(0,0);
+  }
+  function startDoc(type,client){
+    S.cur=newDoc(type,client);fillEditor();setSub('edit');save();
+    if(CUR!=='devis')location.hash='#devis';else window.scrollTo(0,0);
+  }
+
+  /* ---------- statistiques ---------- */
+  function heroHtml(){
+    var now=new Date(),h=now.getHours(),hi=h<5?'Bonsoir':h<18?'Bonjour':'Bonsoir';
+    var mois=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+    var months=[],i;
+    for(i=5;i>=0;i--){var d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({k:d.getFullYear()+'-'+pad(d.getMonth()+1,2),l:mois[d.getMonth()],v:0})}
+    var due=0,env=0,nEnv=0;
+    S.docs.forEach(function(d){var T=docTotals(d);
+      if(d.type==='FACTURE'){due+=Math.max(0,T.due);var m=months.filter(function(x){return x.k===String(d.date||'').slice(0,7)})[0];if(m)m.v+=T.ttc}
+      else if(d.type==='DEVIS'&&d.status==='Envoyé'){env+=T.ttc;nEnv++}});
+    var cur=months[5].v,max=Math.max.apply(null,months.map(function(m){return m.v}))||1;
+    var bars=months.map(function(m,i){
+      var bh=Math.round(m.v/max*46),x=8+i*49;
+      return '<rect x="'+x+'" y="'+(58-bh)+'" width="34" height="'+Math.max(bh,m.v>0?3:1)+'" rx="4" fill="rgba(255,255,255,'+(i===5?'.95':'.45')+')"/><text x="'+(x+17)+'" y="72" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.8)">'+m.l+'</text>';
+    }).join('');
+    return '<div class="hero"><div class="heroTop"><span>'+hi+(S.co.name?', '+esc(S.co.name):'')+'</span><small>'+now.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})+'</small></div>'+
+      '<div class="heroBig"><small>Facturé ce mois</small><strong>'+money(cur)+'</strong></div>'+
+      '<svg viewBox="0 0 304 76" aria-hidden="true" style="width:100%;height:auto;display:block;margin:6px 0 8px">'+bars+'</svg>'+
+      '<div class="heroRow"><div><small>À encaisser</small><b>'+money(due)+'</b></div><div><small>Devis en attente ('+nEnv+')</small><b>'+money(env)+'</b></div><div><small>Clients</small><b>'+S.clients.length+'</b></div></div></div>';
+  }
+  function statsHtml(){
+    var sum={env:0,acc:0,due:0,paid:0,nEnv:0,nAcc:0,nDue:0,nPaid:0};
+    S.docs.forEach(function(d){var T=docTotals(d);
+      if(d.type==='DEVIS'&&d.status==='Envoyé'){sum.env+=T.ttc;sum.nEnv++}
+      if(d.type==='DEVIS'&&d.status==='Accepté'){sum.acc+=T.ttc;sum.nAcc++}
+      if(d.type==='FACTURE'){if(T.due>0.5){sum.due+=T.due;sum.nDue++}sum.paid+=T.paid;if(T.paid>0)sum.nPaid++}});
+    return '<div class="stat"><small>Devis en attente ('+sum.nEnv+')</small><strong>'+money(sum.env)+'</strong></div>'+
+      '<div class="stat"><small>Devis acceptés ('+sum.nAcc+')</small><strong>'+money(sum.acc)+'</strong></div>'+
+      '<div class="stat"><small>À encaisser ('+sum.nDue+')</small><strong>'+money(sum.due)+'</strong></div>'+
+      '<div class="stat"><small>Encaissé</small><strong>'+money(sum.paid)+'</strong></div>';
+  }
+  function docRow(d,full){
+    var T=docTotals(d),pill='';
+    if(d.type==='FACTURE')pill=d.status==='Payée'?'<span class="pill ok">Payée</span>':'<span class="pill warn">'+esc(d.status)+'</span>';
+    else pill='<span class="pill'+(d.status==='Accepté'?' ok':d.status==='Envoyé'?' warn':'')+'">'+esc(d.status)+'</span>';
+    var h='<div class="doc"><div class="top"><b>'+esc(d.num)+'</b><span class="amt">'+money(T.ttc)+'</span></div>'+
+      '<div class="sub">'+esc(d.client.name||'Client non renseigné')+(d.obj?' · '+esc(d.obj):'')+' · '+dfr(d.date)+' '+pill+'</div>';
+    if(d.type==='FACTURE'&&T.due>0.5&&T.paid>0)h+='<div class="sub">Reste dû : '+money(T.due)+'</div>';
+    h+='<div class="btns">';
+    if(full){
+      h+='<select data-st="'+d.id+'" aria-label="Statut">'+STATUS[d.type].map(function(s){return '<option'+(s===d.status?' selected':'')+'>'+s+'</option>'}).join('')+'</select>';
+    }
+    h+='<button data-act="open" data-id="'+d.id+'">Ouvrir</button><button data-act="pdf" data-id="'+d.id+'">PDF</button>';
+    if(full){
+      h+='<button data-act="dup" data-id="'+d.id+'">Dupliquer</button>'+
+        (d.type==='DEVIS'?'<button data-act="bill" data-id="'+d.id+'">Facturer</button>':'')+
+        '<button class="danger" data-act="del" data-id="'+d.id+'">Supprimer</button>';
+    }
+    return h+'</div></div>';
+  }
+  function histRender(){
+    var q=norm($('#hFilter').value);
+    $('#stats').innerHTML=statsHtml();
+    $$('#hChips .chip').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.hf===UI.hf)});
+    var list=S.docs.filter(function(d){
+      if(UI.hf==='DEVIS'||UI.hf==='FACTURE'){if(d.type!==UI.hf)return false}
+      if(UI.hf==='due'){if(!(d.type==='FACTURE'&&docTotals(d).due>0.5))return false}
+      return !q||norm(d.num+' '+d.client.name+' '+d.obj).indexOf(q)>=0;
+    });
+    $('#hList').innerHTML=list.map(function(d){return docRow(d,true)}).join('')||'<p class="empty">'+(S.docs.length?'Aucun résultat.':'Aucun document enregistré. Créez un devis puis touchez Enregistrer.')+'</p>';
+  }
+
+  /* ---------- accueil ---------- */
+  function renderHome(){
+    var b='';
+    var days=S.lastBackup?Math.floor((new Date(todayISO())-new Date(S.lastBackup))/864e5):999;
+    if((S.docs.length||S.clients.length)&&days>7)
+      b+='<div class="banner"><span>'+(S.lastBackup?'Dernière sauvegarde il y a '+days+' jours.':'Vous n\'avez pas encore fait de sauvegarde.')+'</span><button class="primary" data-go="#plus">Sauvegarder</button></div>';
+    if(!S.cat.some(function(x){return x.price>0}))
+      b+='<div class="banner"><span>Entrez vos prix dans le catalogue pour faire vos devis plus vite.</span><button class="primary" data-go="#catalogue">Ouvrir</button></div>';
+    $('#homeBanner').innerHTML=b;
+    $('#homeHero').innerHTML=heroHtml();
+    $('#homeStats').innerHTML=statsHtml();
+    $('#homeRecent').innerHTML=S.docs.slice(0,4).map(function(d){return docRow(d,false)}).join('')||'<p class="empty" style="padding:6px">Aucun document pour le moment. Touchez « Nouveau devis » pour commencer.</p>';
+  }
+
+  /* ---------- clients ---------- */
+  function renderClients(){
+    var c=UI.client&&findClient(UI.client);
+    $('#cliList').hidden=!!c;$('#cliView').hidden=!c;
+    if(!c){UI.client=null;renderCliList();return}
+    var st=clientStats(c),ph=ccPhone(c.tel),docs=docsOf(c);
+    $('#cliView').innerHTML=
+      '<button class="back" data-act="cliBack">‹ Tous les clients</button>'+
+      '<h2>Fiche client</h2><div class="card"><div class="grid">'+
+      '<label class="full">Nom<input data-cl="name" type="text" value="'+esc(c.name)+'" autocomplete="off"></label>'+
+      '<label>Téléphone<input data-cl="tel" type="tel" value="'+esc(c.tel)+'" autocomplete="off"></label>'+
+      '<label>Adresse<input data-cl="addr" type="text" value="'+esc(c.addr)+'" autocomplete="off"></label>'+
+      '<label class="full">Notes<textarea data-cl="note">'+esc(c.note||'')+'</textarea></label></div>'+
+      '<div class="actions">'+(ph?'<a class="btn" href="tel:+'+esc(ph)+'">Appeler</a><a class="btn" target="_blank" rel="noopener" href="https://wa.me/'+esc(ph)+'">WhatsApp</a>':'')+
+      '<button class="primary" data-act="cliDevis">Nouveau devis</button><button data-act="cliFact">Nouvelle facture</button></div></div>'+
+      '<h2>Situation</h2><div class="stats">'+
+      '<div class="stat"><small>Devisé</small><strong>'+money(st.quoted)+'</strong></div>'+
+      '<div class="stat"><small>Facturé</small><strong>'+money(st.billed)+'</strong></div>'+
+      '<div class="stat"><small>Encaissé</small><strong>'+money(st.paid)+'</strong></div>'+
+      '<div class="stat"><small>Reste à payer</small><strong>'+money(st.due)+'</strong></div></div>'+
+      '<h2>Documents ('+docs.length+')</h2><div class="card">'+(docs.map(function(d){return docRow(d,false)}).join('')||'<p class="empty" style="padding:6px">Aucun document pour ce client.</p>')+'</div>'+
+      '<div class="actions"><button class="danger" data-act="cliDel">Supprimer ce client</button></div>';
+    window.scrollTo(0,0);
+  }
+  function renderCliList(){
+    var q=norm($('#cliFilter').value);
+    var list=S.clients.filter(function(c){return !q||norm(c.name+' '+c.tel).indexOf(q)>=0}).sort(function(a,b){return norm(a.name)<norm(b.name)?-1:1});
+    $('#cliItems').innerHTML=list.map(function(c){
+      var st=clientStats(c);
+      return '<button class="cli" data-cli="'+esc(c.id)+'"><span><b>'+esc(c.name)+'</b><small>'+esc(c.tel||'Pas de téléphone')+' · '+st.n+' document'+(st.n>1?'s':'')+'</small></span>'+
+        '<span class="r">'+(st.due>0.5?'<span class="pill warn">'+money(st.due)+' dû</span>':'')+'</span></button>';
+    }).join('')||'<p class="empty">'+(S.clients.length?'Aucun résultat.':'Aucun client pour le moment. Ils sont ajoutés automatiquement quand vous enregistrez un devis, ou touchez « Nouveau client ».')+'</p>';
+  }
+
+  /* ---------- catalogue ---------- */
+  function catCats(){var o=[];S.cat.forEach(function(x){if(x.cat&&o.indexOf(x.cat)<0)o.push(x.cat)});return o}
+  function renderCatalogue(){
+    var q=norm(UI.catq),cats=catCats(),h='';
+    $('#catList').innerHTML=cats.map(function(c){return '<option value="'+esc(c)+'">'}).join('');
+    $('#nkUnit').innerHTML=UNITS.map(function(u){return '<option>'+u+'</option>'}).join('');
+    var groups={},order=[];
+    S.cat.forEach(function(x){
+      if(q&&norm(x.name+' '+x.cat).indexOf(q)<0)return;
+      var g=x.cat||'Divers';if(!groups[g]){groups[g]=[];order.push(g)}groups[g].push(x);
+    });
+    order.forEach(function(g){
+      h+='<h2>'+esc(g)+'</h2><div class="card">'+groups[g].map(function(x){
+        var us=UNITS.indexOf(x.unit)<0?UNITS.concat([x.unit]):UNITS;
+        return '<div class="crow" data-k="'+esc(x.id)+'">'+
+          '<label class="name">Désignation<input data-ck="name" type="text" value="'+esc(x.name)+'" autocomplete="off"></label>'+
+          '<label>Unité<select data-ck="unit">'+us.map(function(u){return '<option'+(u===x.unit?' selected':'')+'>'+esc(u)+'</option>'}).join('')+'</select></label>'+
+          '<label>Prix<input data-ck="price" type="number" inputmode="decimal" value="'+(x.price||'')+'" placeholder="0"></label>'+
+          '<button class="del ghost" data-act="ckDel" data-id="'+esc(x.id)+'" aria-label="Supprimer">✕</button></div>';
+      }).join('')+'</div>';
+    });
+    $('#catItems').innerHTML=h||'<p class="empty">Aucun article'+(q?' trouvé':' dans le catalogue')+'.</p>';
+  }
+
+  /* ---------- feuille « catalogue » dans le devis ---------- */
+  var sheetAdded=0;
+  function openSheet(){
+    sheetAdded=0;UI.sheetCat='Tous';$('#sheetSearch').value='';
+    $('#sheet').hidden=false;renderSheet();
+  }
+  function renderSheet(){
+    var q=norm($('#sheetSearch').value),cats=['Tous'].concat(catCats());
+    $('#sheetChips').innerHTML=cats.map(function(c){return '<button class="chip" data-sc="'+esc(c)+'" aria-pressed="'+(c===UI.sheetCat)+'">'+esc(c)+'</button>'}).join('');
+    var list=S.cat.filter(function(x){return (UI.sheetCat==='Tous'||x.cat===UI.sheetCat)&&(!q||norm(x.name).indexOf(q)>=0)});
+    $('#sheetList').innerHTML=list.map(function(x){
+      return '<button class="item" data-add="'+esc(x.id)+'"><span>'+esc(x.name)+'</span><span>'+(x.price>0?fmt(x.price)+' / '+esc(x.unit):'sans prix')+'</span></button>';
+    }).join('')||'<p class="empty">Aucun article. Ajoutez-en dans Plus › Catalogue.</p>';
+    $('#sheet .top b').textContent='Catalogue'+(sheetAdded?' ('+sheetAdded+' ajouté'+(sheetAdded>1?'s':'')+')':'');
+  }
+
+  /* ---------- réglages ---------- */
+  function fillSettings(){
+    $$('[data-co]').forEach(function(el){el.value=S.co[el.dataset.co]==null?'':S.co[el.dataset.co]});
+    brand();
+    $('#catCount').textContent=S.cat.length+' articles';
+    $('#cliCount').textContent=S.clients.length+' client'+(S.clients.length>1?'s':'');
+    $('#bkLast').textContent=S.lastBackup?'Dernière sauvegarde : '+dfr(S.lastBackup)+'.':'Aucune sauvegarde faite sur cet appareil.';
+  }
+  function brand(){
+    var c=S.co,has=!!c.logo;
+    $('#logoPrev').hidden=!has;$('#logoDel').hidden=!has;if(has)$('#logoPrev').src=c.logo;
+    $('#hMark').innerHTML='<img alt="" src="'+(has?esc(c.logo):'icon-192.png')+'">';
+    sigUI();
+    var nm=String(c.name||'');
+    $('#hTitle').innerHTML=(nm==='Bigmax Elecprop')?'Bigmax <b>Elecprop</b>':esc(nm||'Mon entreprise');
+  }
+
+  /* ---------- aperçu papier ---------- */
+  function paper(d){
+    var c=S.co,T=docTotals(d),isD=d.type==='DEVIS';
+    var h='<div class="ph"><div class="pco">'+(c.logo?'<img alt="" src="'+esc(c.logo)+'">':'')+'<div><b>'+esc(c.name)+'</b>'+
+      (c.slogan?'<br>'+esc(c.slogan):'')+(c.addr?'<br>'+esc(c.addr):'')+(c.phone?'<br>Tél : '+esc(c.phone):'')+(c.email?'<br>'+esc(c.email):'')+'</div></div>'+
+      '<div class="pti"><h3>'+(isD?'DEVIS':'FACTURE')+'</h3><div>N° '+esc(d.num)+'</div><div>Date : '+dfr(d.date)+'</div>'+
+      (d.valid>0?'<div>'+(isD?'Valable jusqu\'au ':'Échéance : ')+dfr(addDays(d.date,d.valid))+'</div>':'')+'</div></div>';
+    h+='<div class="pcl"><small>Client</small><b>'+esc(d.client.name||'—')+'</b>'+(d.client.tel?'<br>Tél : '+esc(d.client.tel):'')+(d.client.addr?'<br>Chantier : '+esc(d.client.addr):'')+'</div>';
+    if(d.obj)h+='<div style="margin-top:8px"><span class="lab">Objet</span>'+esc(d.obj)+'</div>';
+    h+='<table><tr><th>Désignation</th><th class="r">Qté</th><th>Unité</th><th class="r">Prix unitaire</th><th class="r">Total</th></tr>';
+    d.lines.forEach(function(r){var q=+r[1]||0,p=+r[3]||0;
+      h+='<tr><td>'+esc(r[0])+'</td><td class="r">'+fmt(q,2)+'</td><td>'+esc(r[2])+'</td><td class="r">'+fmt(p)+'</td><td class="r">'+fmt(q*p)+'</td></tr>'});
+    if(!d.lines.length)h+='<tr><td colspan="5">Aucune ligne</td></tr>';
+    h+='</table><div class="pt"><div><span>Sous-total</span><span>'+money(T.sub)+'</span></div>';
+    if(T.disc>0)h+='<div><span>Remise '+fmt(d.rem,1)+' %</span><span>− '+money(T.disc)+'</span></div>';
+    if(+d.tva>0)h+='<div><span>Montant HT</span><span>'+money(T.ht)+'</span></div><div><span>TVA '+fmt(d.tva,1)+' %</span><span>'+money(T.tv)+'</span></div>';
+    h+='<div class="big"><span>'+(+d.tva>0?'Total TTC':'Total à payer')+'</span><span>'+money(T.ttc)+'</span></div>';
+    if(T.aco>0)h+='<div><span>Acompte '+fmt(d.acompte,1)+' %</span><span>'+money(T.aco)+'</span></div><div><span>Reste à payer</span><span>'+money(T.reste)+'</span></div>';
+    if(!isD&&T.paid>0)h+='<div><span>Déjà réglé</span><span>'+money(T.paid)+'</span></div><div><span><b>Reste dû</b></span><span><b>'+money(T.due)+'</b></span></div>';
+    h+='</div><div class="words">'+(isD?'Arrêté le présent devis à la somme de : ':'Arrêtée la présente facture à la somme de : ')+esc(amountWords(T.ttc))+'.</div>';
+    if(d.notes)h+='<div class="pn"><span class="lab">Conditions</span>'+esc(d.notes)+'</div>';
+    if(c.pay)h+='<div class="pn"><span class="lab">Moyens de paiement</span>'+esc(c.pay)+'</div>';
+    h+='<div class="sig"><div>'+(isD?'Bon pour accord, date et signature du client':'Signature du client')+(d.sig?'<img class="sigImg" alt="Signature du client" src="'+esc(d.sig)+'">'+(d.sigAt?'<small>Signé électroniquement le '+esc(new Date(d.sigAt).toLocaleDateString('fr-FR'))+'</small>':''):'')+'</div><div>Cachet et signature de l\'entreprise'+(c.sig?'<img class="sigImg" alt="Cachet" src="'+esc(c.sig)+'">':'')+'</div></div>';
+    h+='<div class="pf">'+esc(c.name)+(c.id?' · '+esc(c.id):'')+(c.phone?' · '+esc(c.phone):'')+'</div>';
+    return h;
+  }
+  function openPreview(){$('#paper').innerHTML=paper(S.cur);$('#preview').hidden=false;$('#preview').scrollTop=0;$('#pvClose').focus()}
+
+  function recalc(){calcSolar();calcCable();calcBilan();calcConvert();calcOhm();calcEnergie();calcPump();calcMoteur();calcGroupe();calcRegl();calcDevis();save()}
+
+  /* ---------- événements ---------- */
+  document.addEventListener('input',function(e){
+    var t=e.target,ds=t.dataset||{};
+    if(ds.doc){
+      setPath(S.cur,ds.doc,t.type==='number'?parseNum(t.value):t.value);
+      if(ds.doc==='client.name'&&S.cur.client.id){var cc=findClient(S.cur.client.id);if(!cc||norm(cc.name)!==norm(t.value)){S.cur.client.id='';$('#dcPick').value=''}}
+      if(ds.doc==='paid'||ds.doc==='status'||ds.doc==='tva'||ds.doc==='rem'){
+        var before=S.cur.status;syncPay(S.cur);
+        if(S.cur.status!==before||ds.doc==='status'){$('#dStatus').value=S.cur.status}
+        if(ds.doc==='status'&&S.cur.type==='FACTURE')$('#dPaid').value=S.cur.paid>0?S.cur.paid:'';
+      }
+      calcDevis();save();return;
+    }
+    if(ds.co){setPath(S.co,ds.co,t.type==='number'?parseNum(t.value):t.value);if(ds.co==='name')brand();save();return}
+    if(ds.cl){var c=findClient(UI.client);if(c){c[ds.cl]=t.value;save()}return}
+    if(ds.ck){var k=t.closest('[data-k]'),it=S.cat.filter(function(x){return x.id===k.dataset.k})[0];if(it){it[ds.ck]=ds.ck==='price'?parseNum(t.value):t.value;save()}return}
+    if(t.id==='hFilter'){histRender();return}
+    if(t.id==='cliFilter'){renderCliList();return}
+    if(t.id==='catFilter'){UI.catq=t.value;renderCatalogue();return}
+    if(t.id==='sheetSearch'){renderSheet();return}
+    var row=t.closest&&t.closest('[data-l]');
+    if(row&&ds.f!=null){
+      var l=row.dataset.l,i=+row.dataset.i,f2=+ds.f,arr=l==='dev'?S.cur.lines:S[l];
+      var txt=(l==='dev'&&(f2===0||f2===2))||(l!=='dev'&&f2===0);
+      arr[i][f2]=txt?t.value:parseNum(t.value);
+      if(l==='dev'&&f2===0&&!(+arr[i][3])){var pr=priceFor(t.value);if(pr&&document.activeElement===t){/* prix proposé seulement via le catalogue */}}
+    }
+    recalc();
+  });
+  document.addEventListener('change',function(e){
+    var t=e.target,ds=t.dataset||{};
+    if(t.id==='dcPick'){
+      var c=findClient(t.value);
+      if(c){S.cur.client={id:c.id,name:c.name,tel:c.tel||'',addr:S.cur.client.addr||c.addr||''};fillEditor();save()}
+      else{S.cur.client.id=''}
+      return;
+    }
+    if(ds.st){var d=findDoc(ds.st);if(d){d.status=t.value;syncPay(d);if(d.type==='FACTURE'&&d.status==='Payée')d.paid=docTotals(d).ttc;if(S.cur.id===d.id){S.cur.status=d.status;S.cur.paid=d.paid}save();histRender();renderHome()}return}
+    if(ds.ck){var k=t.closest('[data-k]');if(ds.ck==='cat'){renderCatalogue()}return}
+    if(t.matches('select')&&(t.closest('[data-l]')||/^(s|c|b)[A-Z]/.test(t.id)))recalc();
+  });
+  var armed=null;
+  function arm(b,label,fn){
+    if(armed===b){armed=null;fn();return}
+    armed=b;var old=b.textContent;b.textContent=label;
+    setTimeout(function(){if(armed===b){armed=null;if(b.isConnected)b.textContent=old}},3000);
+  }
+  document.addEventListener('click',function(e){
+    var g=e.target.closest('[data-go]');
+    if(g){
+      var v=g.dataset.go;
+      if(v==='newDevis')startDoc('DEVIS');
+      else if(v==='newFacture')startDoc('FACTURE');
+      else if(v==='hist'){setSub('hist');if(CUR!=='devis')location.hash='#devis'}
+      else location.hash=v;
+      return;
+    }
+    var del=e.target.closest('[data-del]');
+    if(del){var row=del.closest('[data-l]'),l=row.dataset.l,arr=l==='dev'?S.cur.lines:S[l];arr.splice(+row.dataset.i,1);({sol:rowsSol,bil:rowsBil,dev:rowsDev,gen:rowsGen})[l]();recalc();return}
+    var mv=e.target.closest('[data-mv]');
+    if(mv){
+      var r2=mv.closest('[data-l]'),i=+r2.dataset.i,L=S.cur.lines,w=mv.dataset.mv;
+      if(w==='up'&&i>0){var tmp=L[i-1];L[i-1]=L[i];L[i]=tmp}
+      else if(w==='dn'&&i<L.length-1){var tmp2=L[i+1];L[i+1]=L[i];L[i]=tmp2}
+      else if(w==='dup'){L.splice(i+1,0,L[i].slice())}
+      rowsDev();recalc();return;
+    }
+    var hf=e.target.closest('[data-hf]');
+    if(hf){UI.hf=hf.dataset.hf;histRender();return}
+    var cl=e.target.closest('[data-cli]');
+    if(cl){UI.client=cl.dataset.cli;renderClients();return}
+    var sc=e.target.closest('[data-sc]');
+    if(sc){UI.sheetCat=sc.dataset.sc;renderSheet();return}
+    var ad=e.target.closest('[data-add]');
+    if(ad){
+      var it=S.cat.filter(function(x){return x.id===ad.dataset.add})[0];
+      if(it){S.cur.lines.push([it.name,1,it.unit,it.price||priceFor(it.name)]);sheetAdded++;rowsDev();calcDevis();save();renderSheet();toast('Ajouté : '+it.name)}
+      return;
+    }
+    var b=e.target.closest('[data-act]');
+    if(!b)return;
+    var act=b.dataset.act,doc=b.dataset.id?findDoc(b.dataset.id):null;
+    if(act==='open'&&doc)openEditor(doc);
+    else if(act==='pdf'&&doc)sharePdf(doc);
+    else if(act==='dup'&&doc){var c2=clone(doc);c2.id=uid();c2.num=nextNum(c2.type);c2.date=todayISO();c2.status=STATUS[c2.type][0];c2.paid=0;S.docs.unshift(c2);save();histRender();toast('Document dupliqué')}
+    else if(act==='bill'&&doc){var f=clone(doc);f.id=uid();f.type='FACTURE';f.num=nextNum('FACTURE');f.date=todayISO();f.status='Émise';f.paid=0;f.notes=(doc.notes?doc.notes+'\n':'')+'Facture établie suite au devis '+doc.num+'.';S.docs.unshift(f);save();openEditor(f)}
+    else if(act==='del'&&doc)arm(b,'Confirmer',function(){S.docs=S.docs.filter(function(x){return x.id!==doc.id});save();histRender();renderHome()});
+    else if(act==='cliBack'){UI.client=null;renderClients()}
+    else if(act==='cliDevis'||act==='cliFact'){var cc=findClient(UI.client);if(cc)startDoc(act==='cliDevis'?'DEVIS':'FACTURE',cc)}
+    else if(act==='cliDel'){var c3=findClient(UI.client);if(c3)arm(b,'Confirmer la suppression',function(){S.clients=S.clients.filter(function(x){return x.id!==c3.id});UI.client=null;save();renderClients()})}
+    else if(act==='ckDel'){var id=b.dataset.id;arm(b,'?',function(){S.cat=S.cat.filter(function(x){return x.id!==id});save();renderCatalogue()})}
+  });
+
+  $('#solAdd').onclick=function(){S.sol.push(['Nouvel appareil',0,1,1]);rowsSol();recalc()};
+  $('#bilAdd').onclick=function(){S.bil.push(['Nouveau récepteur',0,1,100]);rowsBil();recalc()};
+  $('#devAdd').onclick=function(){S.cur.lines.push(['',1,'u',0]);rowsDev();recalc();var inp=$$('#devRows .row input[data-f="0"]');if(inp.length)inp[inp.length-1].focus()};
+  $('#devCat').onclick=openSheet;
+  $('#sheetClose').onclick=function(){$('#sheet').hidden=true};
+  $('#sheet').addEventListener('click',function(e){if(e.target===this)this.hidden=true});
+  $('#solPreset').onchange=function(){var v=this.value;if(v!==''){S.sol.push(PRE_SOL[+v].slice());rowsSol();recalc()}this.value=''};
+  $('#bilPreset').onchange=function(){var v=this.value;if(v!==''){S.bil.push(PRE_BIL[+v].slice());rowsBil();recalc()}this.value=''};
+  $('#grpAdd').onclick=function(){S.gen.push(['Nouvel appareil',0,1,1]);rowsGen();recalc()};
+  $('#grpPreset').onchange=function(){var v=this.value;if(v!==''){S.gen.push(PRE_GEN[+v].slice());rowsGen();recalc()}this.value=''};
+  $('#cLoad').addEventListener('change',function(){var c=COSL[this.value];if(c){$('#cCos').value=c;recalc()}});
+  $('#pUse').onclick=function(){var s=calcPump();if(s){$('#mP').value=s;$('#mUnit').value='kW';recalc();toast('Puissance reprise dans « Moteur »');$('#mP').scrollIntoView({block:'center'})}};
+  function pushDev(lines,obj){
+    var L=S.cur.lines;lines.forEach(function(x){L.push([x[0],x[1],x[2],priceFor(x[0])])});
+    if(!S.cur.obj&&obj)S.cur.obj=obj;
+    fillEditor();save();setSub('edit');toast('Lignes ajoutées au devis');location.hash='#devis';
+  }
+  $('#cToDevis').onclick=function(){
+    var x=lastCab;if(!x)return;var ms=sx(x.S),r=firstGE(RCD,x.In);
+    var l=[['Câble '+(x.mat==='cu'?'cuivre ':'aluminium ')+ms+' mm²',x.L,'m'],['Disjoncteur '+x.In+' A',1,'u']];
+    if(x.mode!=='dc'&&r)l.push(['Interrupteur différentiel '+r+' A 30 mA',1,'u']);
+    pushDev(l);
+  };
+  $('#mToDevis').onclick=function(){
+    var x=lastMot;if(!x)return;
+    var l=[['Câble '+sx(x.S)+' mm²',x.L,'m'],['Disjoncteur moteur '+x.brk+' A',1,'u'],['Contacteur / relais thermique '+x.rt+' A',1,'u']];
+    if(x.rcd)l.push(['Interrupteur différentiel '+x.rcd+' A 30 mA',1,'u']);
+    if(x.cap)l.push(['Condensateur '+x.cap+' µF',1,'u']);
+    pushDev(l,'Alimentation moteur '+sx(Math.round(x.kw*100)/100)+' kW');
+  };
+  $('#solToDevis').onclick=function(){
+    if(!lastSol)return;var x=lastSol;
+    if(isSaved(S.cur)||S.cur.type!=='DEVIS')S.cur=newDoc('DEVIS');
+    var L=S.cur.lines,n0=L.length;
+    function add(n,q,u){L.push([n,q,u,priceFor(n)])}
+    var mm=function(v){return String(v).replace('.',',')};
+    add('Panneau solaire '+x.Wc+' Wc',x.n,'u');
+    add('Batterie '+x.Vb+' V '+x.Ah+' Ah',x.nb,'u');
+    if(x.sys==='hyb'){if(x.inv)add('Onduleur hybride '+x.inv+' VA avec régulateur MPPT intégré',1,'u')}
+    else{if(x.reg)add('Régulateur solaire '+(x.sys==='pwm'?'PWM ':'MPPT ')+x.reg+' A',1,'u');if(x.inv)add('Onduleur '+x.inv+' VA',1,'u')}
+    if(x.pvS&&x.pvL)add('Câble solaire '+mm(x.pvS)+' mm²',x.pvL,'m');
+    if(x.batS&&x.batL)add('Câble batterie '+mm(x.batS)+' mm²',x.batL,'m');
+    add('Connecteurs MC4 (paire)',x.p*2,'u');
+    if(x.brkPv)add('Disjoncteur DC '+x.brkPv+' A',1,'u');
+    if(x.brkBat)add('Fusible / disjoncteur batterie '+x.brkBat+' A',1,'u');
+    add('Parafoudre DC',1,'u');add('Piquet de terre',1,'u');
+    add('Coffret de protection',1,'u');
+    add('Structure de fixation des panneaux',x.n,'u');
+    add('Petit matériel (colliers, gaines, cosses)',1,'forfait');
+    add('Transport du matériel',1,'forfait');
+    add('Pose, câblage et mise en service',1,'forfait');
+    if(!S.cur.obj)S.cur.obj='Installation solaire '+x.V+' V, '+fmt(x.n*x.Wc)+' Wc';
+    if(!(+S.cur.acompte))S.cur.acompte=50;
+    var g='Garantie : main d\'œuvre 1 an ; matériel selon les conditions du fabricant. Note de calcul solaire fournie sur demande.';
+    if((S.cur.notes||'').indexOf('Garantie')<0)S.cur.notes=((S.cur.notes||'')+'\n'+g).trim();
+    var miss=L.slice(n0).filter(function(r){return !(+r[3])}).length;
+    fillEditor();save();setSub('edit');location.hash='#devis';
+    toast(miss?'Devis créé : remplissez les '+miss+' prix manquants et le client':'Devis solaire créé : choisissez le client');
+  };
+  $('#solPdf').onclick=function(){toast('Création du PDF…');makeSolPdf().then(function(u8){if(!u8)return;return shareFile('note-calcul-solaire.pdf','application/pdf',u8,'Note de calcul solaire','Note de calcul solaire - '+S.co.name)}).then(function(r){if(r==='unavailable')toast('Partage indisponible.');else if(r==='download')toast('PDF téléchargé.')}).catch(function(){toast('Impossible de créer le PDF.')})};
+  $('#solShare').onclick=function(){shareText('Installation solaire',solSummary())};
+  $('#rShare').onclick=function(){shareText('Réglages contrôleur',lastRegl)};
+  $('#subEditBtn').onclick=function(){setSub('edit')};
+  $('#subHistBtn').onclick=function(){setSub('hist')};
+  $('#tyDevis').onclick=function(){setType('DEVIS')};
+  $('#tyFact').onclick=function(){setType('FACTURE')};
+  function setType(t){
+    if(S.cur.type===t)return;
+    S.cur.type=t;if(!isSaved(S.cur))S.cur.num=nextNum(t);
+    S.cur.status=STATUS[t][0];fillEditor();save();
+  }
+  $('#devPaidAll').onclick=function(){S.cur.status='Payée';syncPay(S.cur);fillEditor();save();toast('Facture marquée comme payée')};
+  $('#barSave').onclick=saveDoc;
+  $('#devNew').onclick=function(){S.cur=newDoc(S.cur.type);fillEditor();save();window.scrollTo(0,0);toast('Nouveau document')};
+  $('#devPrev').onclick=openPreview;
+  $('#barPrev').onclick=openPreview;
+  $('#devPdf').onclick=function(){sharePdf(S.cur)};
+  $('#pvPdf').onclick=function(){sharePdf(S.cur)};
+  $('#pvClose').onclick=function(){$('#preview').hidden=true};
+  $('#pvPrint').onclick=function(){window.print()};
+  $('#devCopy').onclick=function(){copyText(docText(S.cur),function(ok){toast(ok?'Texte copié.':'Copie impossible.')})};
+  function copyText(txt,cb){
+    function fb(){var ta=document.createElement('textarea');ta.value=txt;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();cb(ok)}
+    try{navigator.clipboard.writeText(txt).then(function(){cb(true)},fb)}catch(err){fb()}
+  }
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(!$('#preview').hidden)$('#preview').hidden=true;if(!$('#sheet').hidden)$('#sheet').hidden=true}});
+
+  /* clients : nouveau */
+  $('#cliNew').onclick=function(){$('#cliNewBox').hidden=false;$('#ncName').focus()};
+  $('#ncCancel').onclick=function(){$('#cliNewBox').hidden=true};
+  $('#ncSave').onclick=function(){
+    var n=$('#ncName').value.trim();if(!n){toast('Entrez le nom du client.');return}
+    var ex=findClientByName(n);
+    if(ex){UI.client=ex.id;toast('Ce client existe déjà.')}
+    else{var c={id:uid(),name:n,tel:$('#ncTel').value.trim(),addr:$('#ncAddr').value.trim(),note:''};S.clients.push(c);UI.client=c.id;save();toast('Client enregistré')}
+    $('#ncName').value='';$('#ncTel').value='';$('#ncAddr').value='';$('#cliNewBox').hidden=true;renderClients();
+  };
+  /* catalogue : nouvel article */
+  $('#catNew').onclick=function(){$('#catNewBox').hidden=false;$('#nkName').focus()};
+  $('#nkCancel').onclick=function(){$('#catNewBox').hidden=true};
+  $('#nkSave').onclick=function(){
+    var n=$('#nkName').value.trim();if(!n){toast('Entrez la désignation.');return}
+    S.cat.unshift({id:uid(),cat:$('#nkCat').value.trim()||'Divers',name:n,unit:$('#nkUnit').value,price:parseNum($('#nkPrice').value)});
+    $('#nkName').value='';$('#nkPrice').value='';$('#catNewBox').hidden=true;save();renderCatalogue();toast('Article ajouté');
+  };
+
+  /* ---------- logo ---------- */
+  $('#logoFile').onchange=function(){
+    var f=this.files&&this.files[0];if(!f)return;
+    var fr=new FileReader();
+    fr.onload=function(){
+      var img=new Image();
+      img.onload=function(){
+        var m=420,r=Math.min(1,m/Math.max(img.width,img.height)),cv=document.createElement('canvas');
+        cv.width=Math.max(1,Math.round(img.width*r));cv.height=Math.max(1,Math.round(img.height*r));
+        cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+        S.co.logo=cv.toDataURL('image/png');brand();save();toast('Logo enregistré');
+      };
+      img.src=fr.result;
+    };
+    fr.readAsDataURL(f);
+  };
+  $('#logoDel').onclick=function(){S.co.logo='';$('#logoFile').value='';brand();save()};
+
+  /* ---------- sauvegarde ---------- */
+  function utf8(s){return new TextEncoder().encode(s)}
+  function markBackup(){S.lastBackup=todayISO();save();fillSettings()}
+  $('#bkExport').onclick=function(){
+    var json=JSON.stringify(S),name='bigmax-sauvegarde-'+todayISO()+'.json';
+    shareFile(name,'application/json',utf8(json),'Sauvegarde Bigmax Elecprop','Sauvegarde Bigmax Elecprop du '+dfr(todayISO())).then(function(r){
+      if(r==='shared'){markBackup();flash('#bkMsg','Choisissez où enregistrer le fichier (Drive, WhatsApp, e-mail…).')}
+      else if(r==='download'){markBackup();flash('#bkMsg','Sauvegarde téléchargée.')}
+      else if(r==='unavailable')flash('#bkMsg','Partage indisponible dans cette version. Utilisez « Copier le texte ».');
+    });
+  };
+  $('#bkCopy').onclick=function(){
+    copyText(JSON.stringify(S),function(ok){
+      if(ok){markBackup();flash('#bkMsg','Texte copié. Collez-le dans une note ou un message à vous-même.')}
+      else flash('#bkMsg','Copie impossible.');
+    });
+  };
+  function restore(text){
+    try{
+      var o=JSON.parse(text);
+      if(!o||typeof o!=='object'||!Array.isArray(o.docs))throw new Error('x');
+      apply(o);finish();
+      rowsSol();rowsBil();rowsGen();fillSettings();fillEditor();recalc();histRender();renderHome();
+      flash('#bkMsg','Sauvegarde restaurée : '+S.docs.length+' document(s), '+S.clients.length+' client(s).');
+      save();return true;
+    }catch(err){flash('#bkMsg','Fichier ou texte non reconnu.');return false}
+  }
+  $('#bkImport').onchange=function(){
+    var f=this.files&&this.files[0];if(!f)return;var inp=this;
+    var fr=new FileReader();fr.onload=function(){restore(fr.result);inp.value=''};fr.readAsText(f);
+  };
+  $('#bkPasteGo').onclick=function(){var t=$('#bkPaste').value.trim();if(!t){flash('#bkMsg','Collez d\'abord le texte.');return}if(restore(t))$('#bkPaste').value=''};
+  $('#bkWipe').onclick=function(){
+    var b=this;
+    arm(b,'Confirmer l\'effacement',function(){
+      try{localStorage.removeItem('bigmax-elecprop:v1')}catch(e){}
+      S={co:defCo(),sol:[],bil:[],docs:[],cur:null,f:{},clients:[],cat:null,pm:{},lastBackup:''};
+      finish();rowsSol();rowsBil();rowsGen();fillSettings();fillEditor();recalc();histRender();renderHome();flash('#bkMsg','Données effacées.');
+    });
+  };
+
+  /* ---------- installation (navigateur) ---------- */
+  var deferred=null;
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;$('#installBtn').hidden=false});
+  $('#installBtn').onclick=function(){if(deferred){deferred.prompt();deferred=null;this.hidden=true}};
+
+  /* ---------- navigation ---------- */
+  var ROUTES=['accueil','solaire','cables','bilan','convert','moteur','groupe','regl','devis','clients','catalogue','plus'];
+  var NAVOF={accueil:'accueil',solaire:'calculs',cables:'calculs',bilan:'calculs',convert:'calculs',moteur:'calculs',groupe:'calculs',regl:'calculs',devis:'devis',clients:'clients',catalogue:'plus',plus:'plus'};
+  function route(){
+    var h=(location.hash||'').replace('#','');if(h==='reglages')h='plus';if(ROUTES.indexOf(h)<0)h='accueil';
+    CUR=h;
+    ROUTES.forEach(function(t){$('#'+t).hidden=(t!==h)});
+    $('#calcTabs').hidden=['solaire','cables','bilan','convert','moteur','groupe','regl'].indexOf(h)<0;
+    $$('#calcTabs a').forEach(function(a){if(a.getAttribute('href')==='#'+h)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+    $$('nav a').forEach(function(a){if(a.dataset.nav===NAVOF[h])a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+    $('#preview').hidden=true;$('#sheet').hidden=true;
+    if(h==='accueil')renderHome();
+    if(h==='clients'){UI.client=null;renderClients()}
+    if(h==='catalogue'){UI.catq='';$('#catFilter').value='';renderCatalogue()}
+    if(h==='plus')fillSettings();
+    if(h==='devis'){if(SUB==='hist')histRender()}
+    updateBar();
+    window.scrollTo(0,0);
+  }
+  window.addEventListener('hashchange',route);
+
+  $$('[data-pwa]').forEach(function(el){el.hidden=NATIVE});
+  if(NATIVE)$('#installCard').hidden=true;else $('#installCard').hidden=false;
+  fillSel('#solPreset',PRE_SOL,'+ Appareil courant…');
+  fillSel('#bilPreset',PRE_BIL,'+ Récepteur courant…');
+  /* ---------- signature à l'écran ---------- */
+  function sigUI(){
+    var d=S.cur||{},c=S.co||{};
+    var e=$('#sigPrev');if(!e)return;
+    e.hidden=!d.sig;if(d.sig)e.src=d.sig;
+    $('#sigClientDel').hidden=!d.sig;
+    $('#sigClient').textContent=d.sig?'Refaire la signature':'Faire signer le client';
+    $('#sigInfo').textContent=d.sig?'Signé'+(d.sigAt?' le '+new Date(d.sigAt).toLocaleDateString('fr-FR'):'')+'. La signature sera imprimée sur le PDF.':'Le client signe avec le doigt sur l\'écran.';
+    $('#sigCoPrev').hidden=!c.sig;if(c.sig)$('#sigCoPrev').src=c.sig;
+    $('#sigCoDel').hidden=!c.sig;
+  }
+  var sigCb=null,sigDrawn=false,sigCv,sigCx,sigDown=false;
+  function sigOpen(title,cb){
+    sigCb=cb;sigDrawn=false;
+    $('#sigTitle').textContent=title;$('#sigModal').hidden=false;
+    sigCv=$('#sigCv');var r=sigCv.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+    sigCv.width=Math.round(r.width*dpr);sigCv.height=Math.round(r.height*dpr);
+    sigCx=sigCv.getContext('2d');sigCx.setTransform(dpr,0,0,dpr,0,0);
+    sigCx.lineWidth=2.6;sigCx.lineCap='round';sigCx.lineJoin='round';sigCx.strokeStyle='#0b2a4a';
+    sigCx.clearRect(0,0,r.width,r.height);
+  }
+  function sigPt(e){var r=sigCv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]}
+  (function(){
+    var cv=$('#sigCv');
+    cv.addEventListener('pointerdown',function(e){e.preventDefault();sigDown=true;sigDrawn=true;try{cv.setPointerCapture(e.pointerId)}catch(x){}
+      var p=sigPt(e);sigCx.beginPath();sigCx.moveTo(p[0],p[1]);sigCx.lineTo(p[0]+0.1,p[1]+0.1);sigCx.stroke()});
+    cv.addEventListener('pointermove',function(e){if(!sigDown)return;e.preventDefault();var p=sigPt(e);sigCx.lineTo(p[0],p[1]);sigCx.stroke();sigCx.beginPath();sigCx.moveTo(p[0],p[1])});
+    function up(){sigDown=false}
+    cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);cv.addEventListener('pointerleave',up);
+    $('#sigClear').onclick=function(){var r=cv.getBoundingClientRect();sigCx.clearRect(0,0,r.width,r.height);sigDrawn=false};
+    $('#sigCancel').onclick=function(){$('#sigModal').hidden=true;sigCb=null};
+    $('#sigOk').onclick=function(){
+      if(!sigDrawn){toast('Dessinez d\'abord la signature.');return}
+      var r=cv.getBoundingClientRect(),w=480,h=Math.max(60,Math.round(480*r.height/r.width));
+      var o=document.createElement('canvas');o.width=w;o.height=h;var x=o.getContext('2d');
+      x.fillStyle='#ffffff';x.fillRect(0,0,w,h);x.drawImage(cv,0,0,w,h);
+      var url=o.toDataURL('image/jpeg',0.85);
+      $('#sigModal').hidden=true;var cb=sigCb;sigCb=null;if(cb)cb(url);
+    };
+    $('#sigClient').onclick=function(){
+      sigOpen('Signature du client',function(u){S.cur.sig=u;S.cur.sigAt=new Date().toISOString();sigUI();save();toast('Signature enregistrée')});
+    };
+    $('#sigClientDel').onclick=function(){S.cur.sig='';S.cur.sigAt='';sigUI();save()};
+    $('#sigCoDraw').onclick=function(){sigOpen('Signature de l\'entreprise',function(u){S.co.sig=u;sigUI();save();toast('Signature enregistrée')})};
+    $('#sigCoDel').onclick=function(){S.co.sig='';sigUI();save()};
+    $('#sigCoFile').onchange=function(){
+      var f=this.files&&this.files[0];if(!f)return;var inp=this;
+      var fr=new FileReader();fr.onload=function(){
+        var im=new Image();im.onload=function(){
+          var r=Math.min(1,480/im.width),o=document.createElement('canvas');o.width=Math.max(1,Math.round(im.width*r));o.height=Math.max(1,Math.round(im.height*r));
+          var x=o.getContext('2d');x.fillStyle='#ffffff';x.fillRect(0,0,o.width,o.height);x.drawImage(im,0,0,o.width,o.height);
+          S.co.sig=o.toDataURL('image/jpeg',0.88);inp.value='';sigUI();save();toast('Cachet enregistré');
+        };im.src=fr.result;
+      };fr.readAsDataURL(f);
+    };
+  })();
+  (function(){
+    var K='bigmax-theme',root=document.documentElement;
+    try{var t=localStorage.getItem(K);if(t==='dark'||t==='light')root.setAttribute('data-theme',t)}catch(e){}
+    $('#themeBtn').onclick=function(){
+      var cur=root.getAttribute('data-theme')||(window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+      var nx=cur==='dark'?'light':'dark';root.setAttribute('data-theme',nx);
+      try{localStorage.setItem(K,nx)}catch(e){}
+      try{recalc()}catch(e){}
+    };
+  })();
+  load();rowsSol();rowsBil();rowsGen();fillSettings();fillEditor();recalc();route();
+  window.__bigmax={S:function(){return S},makePdf:makePdf,words:words,amountWords:amountWords};
+})();
+</script>
+<script>try{if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(x){x.unregister()})}).catch(function(){});if(window.caches)caches.keys().then(function(k){k.forEach(function(n){caches.delete(n)})}).catch(function(){})}}catch(e){}</script>
+</body>
+</html>
